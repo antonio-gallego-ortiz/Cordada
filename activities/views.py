@@ -1,12 +1,18 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, ValidationError
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_GET, require_POST
 
 from .forms import ActivityForm, ActivitySearchForm
-from .models import Activity, Registration, register_user_for_activity
+from .models import (
+    Activity,
+    ActivityMessage,
+    Registration,
+    register_user_for_activity,
+)
 
 
 def activity_list(request):
@@ -37,6 +43,7 @@ def activity_detail(request, pk):
             "activity": activity,
             "registrations": registrations,
             "user_is_registered": activity.is_user_registered(request.user),
+            "user_can_chat": activity.can_chat(request.user),
         },
     )
 
@@ -134,6 +141,57 @@ def registration_cancel(request, pk):
     else:
         messages.error(request, "No estabas inscrito/a en esta actividad.")
     return redirect("activity_detail", pk=pk)
+
+
+def get_activity_for_chat(request, pk):
+    """Devuelve la actividad solo si el usuario puede usar su chat."""
+    activity = get_object_or_404(Activity, pk=pk)
+    if not activity.can_chat(request.user):
+        raise PermissionDenied
+    return activity
+
+
+@login_required
+@require_GET
+def chat_messages(request, pk):
+    """Mensajes del chat de la actividad en JSON (para el refresco automático)."""
+    activity = get_activity_for_chat(request, pk)
+    messages_qs = activity.messages.select_related("user")[:200]
+    return JsonResponse(
+        {
+            "messages": [
+                {
+                    "id": message.pk,
+                    "author": message.user.get_full_name() or message.user.username,
+                    "initial": (message.user.first_name or message.user.username)[:1].upper(),
+                    "mine": message.user_id == request.user.pk,
+                    "content": message.content,
+                    "created": timezone.localtime(message.created_at).strftime(
+                        "%d/%m %H:%M"
+                    ),
+                }
+                for message in messages_qs
+            ]
+        }
+    )
+
+
+@login_required
+@require_POST
+def chat_send(request, pk):
+    """Envío de un mensaje al chat de la actividad."""
+    activity = get_activity_for_chat(request, pk)
+    content = request.POST.get("content", "").strip()
+    if not content:
+        return JsonResponse({"error": "El mensaje no puede estar vacío."}, status=400)
+    if len(content) > 1000:
+        return JsonResponse(
+            {"error": "El mensaje no puede superar los 1000 caracteres."}, status=400
+        )
+    ActivityMessage.objects.create(
+        activity=activity, user=request.user, content=content
+    )
+    return JsonResponse({"ok": True}, status=201)
 
 
 @login_required

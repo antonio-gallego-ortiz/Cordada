@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model, login, logout
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 
-from .forms import ProfileForm, RegisterForm
+from .forms import ProfileForm, RegisterForm, SportsForm
 
 User = get_user_model()
 
@@ -32,16 +32,23 @@ def profile(request):
 
 @login_required
 def profile_edit(request):
-    """Edición del perfil propio (RF-02)."""
+    """Edición del perfil propio, incluidos deportes y niveles (RF-02)."""
     if request.method == "POST":
         form = ProfileForm(request.POST, request.FILES, instance=request.user)
-        if form.is_valid():
+        sports_form = SportsForm(request.POST, user=request.user)
+        if form.is_valid() and sports_form.is_valid():
             form.save()
+            sports_form.save()
             messages.success(request, "Perfil actualizado correctamente.")
             return redirect("profile")
     else:
         form = ProfileForm(instance=request.user)
-    return render(request, "accounts/profile_edit.html", {"form": form})
+        sports_form = SportsForm(user=request.user)
+    return render(
+        request,
+        "accounts/profile_edit.html",
+        {"form": form, "sports_form": sports_form},
+    )
 
 
 @login_required

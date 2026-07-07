@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 
-from .models import User
+from .models import User, UserSport
 
 
 class BootstrapFormMixin:
@@ -54,3 +54,38 @@ class ProfileForm(BootstrapFormMixin, forms.ModelForm):
         widgets = {
             "bio": forms.Textarea(attrs={"rows": 4}),
         }
+
+
+class SportsForm(BootstrapFormMixin, forms.Form):
+    """Nivel del usuario en cada deporte de montaña.
+
+    Genera un desplegable por deporte; dejarlo vacío significa que
+    no lo practica.
+    """
+
+    LEVEL_CHOICES = [("", "No lo practico")] + list(UserSport.Level.choices)
+
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user = user
+        current = {}
+        if user is not None:
+            current = dict(user.sports.values_list("sport", "level"))
+        for sport in UserSport.Sport:
+            self.fields[f"sport_{sport.value}"] = forms.ChoiceField(
+                label=sport.label,
+                choices=self.LEVEL_CHOICES,
+                required=False,
+                initial=current.get(sport.value, ""),
+                widget=forms.Select(attrs={"class": "form-select"}),
+            )
+
+    def save(self):
+        for sport in UserSport.Sport:
+            level = self.cleaned_data.get(f"sport_{sport.value}")
+            if level:
+                UserSport.objects.update_or_create(
+                    user=self.user, sport=sport.value, defaults={"level": level}
+                )
+            else:
+                UserSport.objects.filter(user=self.user, sport=sport.value).delete()

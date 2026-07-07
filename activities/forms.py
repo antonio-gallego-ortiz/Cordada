@@ -18,12 +18,22 @@ class ActivityForm(BootstrapFormMixin, forms.ModelForm):
             "location",
             "meeting_point",
             "max_participants",
+            "distance_km",
+            "elevation_gain_m",
+            "duration_hours",
+            "equipment",
             "gpx_file",
         ]
         widgets = {
             "description": forms.Textarea(attrs={"rows": 5}),
             "date": forms.DateTimeInput(
                 attrs={"type": "datetime-local"}, format="%Y-%m-%dT%H:%M"
+            ),
+            "equipment": forms.Textarea(
+                attrs={
+                    "rows": 3,
+                    "placeholder": "Botas de montaña, 2 L de agua, cortavientos, frontal...",
+                }
             ),
         }
 

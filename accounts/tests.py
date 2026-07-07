@@ -2,6 +2,8 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 
+from .models import UserSport
+
 User = get_user_model()
 
 
@@ -77,3 +79,40 @@ class AccountTests(TestCase):
         User.objects.create_user("ana", "ana@example.com", "montana-segura-99")
         response = self.client.get(reverse("public_profile", args=["ana"]))
         self.assertEqual(response.status_code, 200)
+
+
+class UserSportTests(TestCase):
+    """Deportes y niveles del perfil."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            "ana", "ana@example.com", "montana-segura-99", first_name="Ana"
+        )
+        self.client.force_login(self.user)
+
+    def edit_profile(self, **sports):
+        data = {"first_name": "Ana", "last_name": "López", "email": "ana@example.com"}
+        data.update(sports)
+        return self.client.post(reverse("profile_edit"), data)
+
+    def test_user_can_set_sports_with_level(self):
+        response = self.edit_profile(
+            sport_hiking="advanced", sport_climbing="beginner"
+        )
+        self.assertRedirects(response, reverse("profile"))
+        levels = dict(self.user.sports.values_list("sport", "level"))
+        self.assertEqual(
+            levels, {"hiking": "advanced", "climbing": "beginner"}
+        )
+
+    def test_clearing_a_sport_removes_it(self):
+        UserSport.objects.create(user=self.user, sport="skiing", level="expert")
+        self.edit_profile(sport_skiing="")
+        self.assertFalse(self.user.sports.filter(sport="skiing").exists())
+
+    def test_sports_are_shown_in_public_profile(self):
+        UserSport.objects.create(user=self.user, sport="hiking", level="expert")
+        self.client.logout()
+        response = self.client.get(reverse("public_profile", args=["ana"]))
+        self.assertContains(response, "Senderismo")
+        self.assertContains(response, "Experto")

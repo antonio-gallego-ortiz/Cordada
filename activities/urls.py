@@ -22,5 +22,15 @@ urlpatterns = [
         views.registration_cancel,
         name="registration_cancel",
     ),
+    path(
+        "actividades/<int:pk>/chat/mensajes/",
+        views.chat_messages,
+        name="chat_messages",
+    ),
+    path(
+        "actividades/<int:pk>/chat/enviar/",
+        views.chat_send,
+        name="chat_send",
+    ),
     path("mis-actividades/", views.my_activities, name="my_activities"),
 ]

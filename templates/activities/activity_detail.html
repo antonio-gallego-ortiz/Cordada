@@ -9,130 +9,203 @@
 {% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
+<div class="row g-4">
     <div class="col-lg-8">
         <div class="card shadow-sm">
-            <div class="card-body p-4">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                    <h1 class="h3 mb-0">{{ activity.title }}</h1>
+            <div class="card-body p-4 p-md-5">
+                <div class="d-flex justify-content-between align-items-start mb-1">
+                    <span class="eyebrow">{{ activity.date|date:"l j F Y · H:i" }}</span>
                     {% include "activities/includes/difficulty_badge.html" %}
                 </div>
+                <h1 class="h2 mb-2">{{ activity.title }}</h1>
+                <p class="text-muted mb-4">
+                    <i class="bi bi-geo-alt me-1"></i>{{ activity.location }}
+                    <span class="mx-2 text-secondary">·</span>
+                    <i class="bi bi-signpost me-1"></i>Encuentro: {{ activity.meeting_point }}
+                </p>
 
                 {% if activity.is_past %}
                     <div class="alert alert-secondary py-2">
-                        <i class="bi bi-clock-history"></i> Esta actividad ya se ha celebrado.
+                        <i class="bi bi-clock-history me-1"></i>Esta actividad ya se ha celebrado.
                     </div>
                 {% endif %}
 
-                <ul class="list-unstyled text-muted mb-4">
-                    <li class="mb-1">
-                        <i class="bi bi-calendar-event"></i>
-                        {{ activity.date|date:"l j F Y, H:i" }}
-                    </li>
-                    <li class="mb-1">
-                        <i class="bi bi-geo-alt"></i> {{ activity.location }}
-                    </li>
-                    <li class="mb-1">
-                        <i class="bi bi-signpost"></i> Punto de encuentro: {{ activity.meeting_point }}
-                    </li>
-                    <li class="mb-1">
-                        <i class="bi bi-people"></i>
-                        Plazas: {{ activity.participants_count }} / {{ activity.max_participants }}
-                        {% if activity.is_full %}
-                            <span class="badge text-bg-secondary">Completa</span>
-                        {% else %}
-                            <span class="text-success">({{ activity.free_places }} libres)</span>
+                {% if activity.distance_km or activity.elevation_gain_m or activity.duration_hours %}
+                    <div class="row g-2 mb-4">
+                        {% if activity.distance_km %}
+                            <div class="col-4">
+                                <div class="stat-tile">
+                                    <div class="eyebrow">Distancia</div>
+                                    <div class="value">{{ activity.distance_km }} km</div>
+                                </div>
+                            </div>
                         {% endif %}
-                    </li>
-                    <li>
-                        <i class="bi bi-person"></i> Organiza:
-                        <a href="{% url 'public_profile' activity.organizer.username %}">
-                            {{ activity.organizer.get_full_name|default:activity.organizer.username }}
-                        </a>
-                    </li>
-                </ul>
+                        {% if activity.elevation_gain_m %}
+                            <div class="col-4">
+                                <div class="stat-tile">
+                                    <div class="eyebrow">Desnivel +</div>
+                                    <div class="value">{{ activity.elevation_gain_m }} m</div>
+                                </div>
+                            </div>
+                        {% endif %}
+                        {% if activity.duration_hours %}
+                            <div class="col-4">
+                                <div class="stat-tile">
+                                    <div class="eyebrow">Duración</div>
+                                    <div class="value">{{ activity.duration_hours }} h</div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endif %}
 
-                <p>{{ activity.description|linebreaksbr }}</p>
+                <p class="mb-4">{{ activity.description|linebreaksbr }}</p>
+
+                {% if activity.equipment %}
+                    <div class="card bg-warning-subtle border-0 mb-4">
+                        <div class="card-body">
+                            <h2 class="h6 fw-bold mb-2">
+                                <i class="bi bi-backpack2 me-1"></i>Material necesario
+                            </h2>
+                            <p class="mb-0 small">{{ activity.equipment|linebreaksbr }}</p>
+                        </div>
+                    </div>
+                {% endif %}
 
                 {% if activity.gpx_file %}
-                    <h2 class="h5 mt-4"><i class="bi bi-map"></i> Recorrido</h2>
-                    <div id="map" class="rounded border" style="height: 400px;"></div>
-                    <a href="{{ activity.gpx_file.url }}" class="btn btn-sm btn-outline-secondary mt-2" download>
-                        <i class="bi bi-download"></i> Descargar track GPX
+                    <h2 class="h5 mb-2"><i class="bi bi-map me-1"></i>Recorrido</h2>
+                    <div id="map" class="rounded-3 border mb-2" style="height: 400px;"></div>
+                    <a href="{{ activity.gpx_file.url }}" class="btn btn-sm btn-outline-secondary" download>
+                        <i class="bi bi-download me-1"></i>Descargar track GPX
                     </a>
                 {% endif %}
 
                 {% if user.is_authenticated and user.is_admin and user != activity.organizer %}
                     <hr>
-                    <div class="alert alert-warning py-2 d-flex justify-content-between align-items-center">
-                        <span><i class="bi bi-shield-exclamation"></i> Moderación</span>
+                    <div class="alert alert-warning py-2 d-flex justify-content-between align-items-center mb-0">
+                        <span><i class="bi bi-shield-exclamation me-1"></i>Moderación</span>
                         <a href="{% url 'activity_delete' activity.pk %}" class="btn btn-sm btn-outline-danger">
-                            <i class="bi bi-trash"></i> Eliminar actividad
+                            <i class="bi bi-trash me-1"></i>Eliminar actividad
                         </a>
                     </div>
                 {% endif %}
+            </div>
+        </div>
+
+        {% if user_can_chat %}
+        <div class="card shadow-sm mt-4">
+            <div class="card-body p-4">
+                <h2 class="h5 mb-1"><i class="bi bi-chat-dots me-1"></i>Chat de la actividad</h2>
+                <p class="text-muted small mb-3">
+                    Solo visible para el organizador y las personas inscritas.
+                </p>
+                <div id="chat-box" class="chat-box p-3 mb-3 d-flex flex-column gap-2">
+                    <div class="text-center text-muted small py-4" id="chat-empty">Cargando mensajes…</div>
+                </div>
+                <form id="chat-form" class="d-flex gap-2">
+                    <input type="text" id="chat-input" class="form-control" maxlength="1000"
+                           placeholder="Escribe un mensaje..." autocomplete="off">
+                    <button type="submit" class="btn btn-success px-3" aria-label="Enviar mensaje">
+                        <i class="bi bi-send"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <div class="eyebrow mb-2">Plazas</div>
+                <div class="d-flex justify-content-between align-items-baseline mb-2">
+                    <span class="h4 mb-0">{{ activity.participants_count }} / {{ activity.max_participants }}</span>
+                    {% if activity.is_full %}
+                        <span class="badge text-bg-secondary">Completa</span>
+                    {% else %}
+                        <span class="text-cordada small fw-semibold">{{ activity.free_places }} libres</span>
+                    {% endif %}
+                </div>
+                <div class="places-bar mb-4">
+                    <div style="width: {% widthratio activity.participants_count activity.max_participants 100 %}%;"></div>
+                </div>
 
                 {% if not activity.is_past %}
                     {% if user == activity.organizer %}
-                        <hr>
-                        <div class="d-flex gap-2">
+                        <div class="d-grid gap-2">
                             <a href="{% url 'activity_edit' activity.pk %}" class="btn btn-outline-success">
-                                <i class="bi bi-pencil"></i> Editar
+                                <i class="bi bi-pencil me-1"></i>Editar actividad
                             </a>
                             <a href="{% url 'activity_delete' activity.pk %}" class="btn btn-outline-danger">
-                                <i class="bi bi-trash"></i> Eliminar
+                                <i class="bi bi-trash me-1"></i>Eliminar
                             </a>
                         </div>
                     {% elif user.is_authenticated %}
-                        <hr>
                         {% if user_is_registered %}
-                            <form method="post" action="{% url 'registration_cancel' activity.pk %}">
+                            <form method="post" action="{% url 'registration_cancel' activity.pk %}" class="d-grid">
                                 {% csrf_token %}
                                 <button type="submit" class="btn btn-outline-danger">
-                                    <i class="bi bi-x-circle"></i> Cancelar mi inscripción
+                                    <i class="bi bi-x-circle me-1"></i>Cancelar mi inscripción
                                 </button>
                             </form>
                         {% elif not activity.is_full %}
-                            <form method="post" action="{% url 'registration_create' activity.pk %}">
+                            <form method="post" action="{% url 'registration_create' activity.pk %}" class="d-grid">
                                 {% csrf_token %}
-                                <button type="submit" class="btn btn-success">
-                                    <i class="bi bi-check-circle"></i> Apuntarme
+                                <button type="submit" class="btn btn-success btn-lg">
+                                    <i class="bi bi-check-circle me-1"></i>Apuntarme
                                 </button>
                             </form>
                         {% endif %}
                     {% else %}
-                        <hr>
-                        <p class="text-muted mb-0">
-                            <a href="{% url 'login' %}">Inicia sesión</a> para apuntarte a esta actividad.
-                        </p>
+                        <p class="text-muted small mb-2">Inicia sesión para apuntarte a esta actividad.</p>
+                        <a href="{% url 'login' %}" class="btn btn-success w-100">Iniciar sesión</a>
                     {% endif %}
                 {% endif %}
+
+                <hr>
+                <div class="eyebrow mb-2">Organiza</div>
+                <a href="{% url 'public_profile' activity.organizer.username %}"
+                   class="d-flex align-items-center gap-2 text-decoration-none text-reset">
+                    {% if activity.organizer.photo %}
+                        <img src="{{ activity.organizer.photo.url }}" alt="" class="avatar-photo" width="44" height="44">
+                    {% else %}
+                        <span class="avatar-circle" style="width: 2.75rem; height: 2.75rem;">
+                            {{ activity.organizer.first_name|default:activity.organizer.username|slice:":1"|upper }}
+                        </span>
+                    {% endif %}
+                    <div>
+                        <div class="fw-semibold">{{ activity.organizer.get_full_name|default:activity.organizer.username }}</div>
+                        <div class="text-muted small">@{{ activity.organizer.username }}</div>
+                    </div>
+                </a>
             </div>
         </div>
 
         {% if user.is_authenticated %}
         <div class="card shadow-sm mt-4">
             <div class="card-body p-4">
-                <h2 class="h5 mb-3">
-                    <i class="bi bi-people"></i>
-                    Participantes ({{ activity.participants_count }})
-                </h2>
+                <div class="eyebrow mb-3">Participantes ({{ activity.participants_count }})</div>
                 {% if registrations %}
-                    <ul class="list-group list-group-flush">
+                    <div class="d-flex flex-column gap-3">
                         {% for registration in registrations %}
-                            <li class="list-group-item px-0 d-flex justify-content-between">
-                                <a href="{% url 'public_profile' registration.user.username %}" class="text-decoration-none">
-                                    <i class="bi bi-person-circle"></i>
-                                    {{ registration.user.get_full_name|default:registration.user.username }}
-                                </a>
-                                <span class="text-muted small">
-                                    inscrito/a el {{ registration.created_at|date:"j M Y" }}
-                                </span>
-                            </li>
+                            <a href="{% url 'public_profile' registration.user.username %}"
+                               class="d-flex align-items-center gap-2 text-decoration-none text-reset">
+                                {% if registration.user.photo %}
+                                    <img src="{{ registration.user.photo.url }}" alt="" class="avatar-photo" width="36" height="36">
+                                {% else %}
+                                    <span class="avatar-circle">
+                                        {{ registration.user.first_name|default:registration.user.username|slice:":1"|upper }}
+                                    </span>
+                                {% endif %}
+                                <div class="small">
+                                    <div class="fw-semibold">{{ registration.user.get_full_name|default:registration.user.username }}</div>
+                                    <div class="text-muted">desde el {{ registration.created_at|date:"j M" }}</div>
+                                </div>
+                            </a>
                         {% endfor %}
-                    </ul>
+                    </div>
                 {% else %}
-                    <p class="text-muted mb-0">Todavía no hay nadie apuntado. ¡Sé el primero!</p>
+                    <p class="text-muted small mb-0">Todavía no hay nadie apuntado. ¡Sé el primero!</p>
                 {% endif %}
             </div>
         </div>
@@ -162,6 +235,78 @@
         }).on("loaded", function (event) {
             map.fitBounds(event.target.getBounds());
         }).addTo(map);
+    </script>
+{% endif %}
+
+{% if user_can_chat %}
+    <script>
+        (function () {
+            const box = document.getElementById("chat-box");
+            const form = document.getElementById("chat-form");
+            const input = document.getElementById("chat-input");
+            const messagesUrl = "{% url 'chat_messages' activity.pk %}";
+            const sendUrl = "{% url 'chat_send' activity.pk %}";
+            const csrfToken = "{{ csrf_token }}";
+            let lastCount = -1;
+
+            function escapeHtml(text) {
+                const div = document.createElement("div");
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            function render(messages) {
+                if (messages.length === lastCount) return;
+                lastCount = messages.length;
+                if (messages.length === 0) {
+                    box.innerHTML = '<div class="text-center text-muted small py-4">' +
+                        'Todavía no hay mensajes. ¡Rompe el hielo!</div>';
+                    return;
+                }
+                box.innerHTML = messages.map(function (message) {
+                    return '<div class="chat-message' + (message.mine ? " mine" : "") + '">' +
+                        '<div class="d-flex align-items-end gap-2">' +
+                        (message.mine ? "" :
+                            '<span class="avatar-circle" style="width:1.75rem;height:1.75rem;font-size:0.7rem;">' +
+                            escapeHtml(message.initial) + '</span>') +
+                        '<div class="chat-bubble">' +
+                        (message.mine ? "" :
+                            '<div class="fw-semibold small">' + escapeHtml(message.author) + '</div>') +
+                        '<div>' + escapeHtml(message.content) + '</div>' +
+                        '<div class="small ' + (message.mine ? "text-white-50" : "text-muted") + '">' +
+                        message.created + '</div>' +
+                        '</div></div></div>';
+                }).join("");
+                box.scrollTop = box.scrollHeight;
+            }
+
+            function load() {
+                fetch(messagesUrl)
+                    .then(function (response) { return response.json(); })
+                    .then(function (data) { render(data.messages); })
+                    .catch(function () { /* se reintenta en el siguiente ciclo */ });
+            }
+
+            form.addEventListener("submit", function (event) {
+                event.preventDefault();
+                const content = input.value.trim();
+                if (!content) return;
+                const body = new URLSearchParams({content: content});
+                fetch(sendUrl, {
+                    method: "POST",
+                    headers: {"X-CSRFToken": csrfToken},
+                    body: body
+                }).then(function (response) {
+                    if (response.ok) {
+                        input.value = "";
+                        load();
+                    }
+                });
+            });
+
+            load();
+            setInterval(load, 5000);
+        })();
     </script>
 {% endif %}
 {% endblock %}

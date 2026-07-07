@@ -4,21 +4,80 @@
 
 {% block content %}
 <div class="row justify-content-center">
-    <div class="col-md-8 col-lg-6">
-        <div class="card shadow-sm">
-            <div class="card-body p-4">
-                <h1 class="h3 mb-4 text-center">{{ title }}</h1>
-                <form method="post" enctype="multipart/form-data" novalidate>
-                    {% csrf_token %}
-                    {% include "includes/form_fields.html" %}
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-success flex-grow-1">Guardar</button>
-                        <a href="{% if activity %}{{ activity.get_absolute_url }}{% else %}{% url 'activity_list' %}{% endif %}"
-                           class="btn btn-outline-secondary">Cancelar</a>
-                    </div>
-                </form>
+    <div class="col-md-9 col-lg-7">
+        <h1 class="h3 mb-4 text-center">{{ title }}</h1>
+        <form method="post" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+                </div>
+            {% endif %}
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <div class="eyebrow mb-3">Información básica</div>
+                    {% for field in form %}
+                        {% if field.name == "title" or field.name == "description" or field.name == "date" or field.name == "difficulty" or field.name == "location" or field.name == "meeting_point" or field.name == "max_participants" %}
+                            <div class="mb-3">
+                                <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                                {{ field }}
+                                {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+                                {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
             </div>
-        </div>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <div class="eyebrow mb-1">Datos técnicos de la ruta</div>
+                    <p class="text-muted small mb-3">Opcionales, pero ayudan a los participantes a prepararse.</p>
+                    <div class="row g-3">
+                        <div class="col-4">
+                            <label for="{{ form.distance_km.id_for_label }}" class="form-label">{{ form.distance_km.label }}</label>
+                            {{ form.distance_km }}
+                            {% for error in form.distance_km.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                        </div>
+                        <div class="col-4">
+                            <label for="{{ form.elevation_gain_m.id_for_label }}" class="form-label">{{ form.elevation_gain_m.label }}</label>
+                            {{ form.elevation_gain_m }}
+                            {% for error in form.elevation_gain_m.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                        </div>
+                        <div class="col-4">
+                            <label for="{{ form.duration_hours.id_for_label }}" class="form-label">{{ form.duration_hours.label }}</label>
+                            {{ form.duration_hours }}
+                            {% for error in form.duration_hours.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <div class="eyebrow mb-1">Material necesario</div>
+                    <p class="text-muted small mb-3">{{ form.equipment.help_text }}</p>
+                    {{ form.equipment }}
+                    {% for error in form.equipment.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                </div>
+            </div>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <div class="eyebrow mb-1">Track GPX</div>
+                    <p class="text-muted small mb-3">Sube el recorrido para que se muestre sobre el mapa (opcional, máx. 5 MB).</p>
+                    {{ form.gpx_file }}
+                    {% for error in form.gpx_file.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                </div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-success flex-grow-1 py-2">Guardar</button>
+                <a href="{% if activity %}{{ activity.get_absolute_url }}{% else %}{% url 'activity_list' %}{% endif %}"
+                   class="btn btn-outline-secondary">Cancelar</a>
+            </div>
+        </form>
     </div>
 </div>
 {% endblock %}

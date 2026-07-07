@@ -26,6 +26,24 @@ class Activity(models.Model):
     max_participants = models.PositiveIntegerField(
         "número máximo de participantes", validators=[MinValueValidator(1)]
     )
+    equipment = models.TextField(
+        "material necesario",
+        blank=True,
+        help_text="Material recomendado para la ruta: calzado, agua, crampones...",
+    )
+    distance_km = models.DecimalField(
+        "distancia (km)", max_digits=5, decimal_places=1, null=True, blank=True
+    )
+    elevation_gain_m = models.PositiveIntegerField(
+        "desnivel positivo (m)", null=True, blank=True
+    )
+    duration_hours = models.DecimalField(
+        "duración estimada (horas)",
+        max_digits=4,
+        decimal_places=1,
+        null=True,
+        blank=True,
+    )
     organizer = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -73,6 +91,12 @@ class Activity(models.Model):
             return False
         return self.registrations.filter(user=user).exists()
 
+    def can_chat(self, user):
+        """El chat es solo para el organizador y los inscritos."""
+        if not user.is_authenticated:
+            return False
+        return self.organizer_id == user.pk or self.is_user_registered(user)
+
 
 class Registration(models.Model):
     """Inscripción de un usuario en una actividad."""
@@ -104,6 +128,33 @@ class Registration(models.Model):
 
     def __str__(self):
         return f"{self.user} → {self.activity}"
+
+
+class ActivityMessage(models.Model):
+    """Mensaje del chat de una actividad (solo organizador e inscritos)."""
+
+    activity = models.ForeignKey(
+        Activity,
+        on_delete=models.CASCADE,
+        related_name="messages",
+        verbose_name="actividad",
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="activity_messages",
+        verbose_name="usuario",
+    )
+    content = models.TextField("mensaje", max_length=1000)
+    created_at = models.DateTimeField("fecha de envío", auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at"]
+        verbose_name = "mensaje de actividad"
+        verbose_name_plural = "mensajes de actividad"
+
+    def __str__(self):
+        return f"{self.user} en {self.activity}: {self.content[:40]}"
 
 
 def register_user_for_activity(user, activity_pk):

@@ -152,6 +152,56 @@ class ActivityPermissionTests(TestCase):
         self.assertEqual(response.status_code, 403)
 
 
+class ActivityChatTests(TestCase):
+    """Chat de actividad: solo organizador e inscritos."""
+
+    def setUp(self):
+        self.organizer = create_user("organizadora")
+        self.member = create_user("montanera")
+        self.outsider = create_user("curiosa")
+        self.activity = create_activity(self.organizer)
+        register_user_for_activity(self.member, self.activity.pk)
+
+    def send(self, text="¡Nos vemos en el parking!"):
+        return self.client.post(
+            reverse("chat_send", args=[self.activity.pk]), {"content": text}
+        )
+
+    def test_registered_user_can_send_and_read_messages(self):
+        self.client.force_login(self.member)
+        response = self.send()
+        self.assertEqual(response.status_code, 201)
+        response = self.client.get(reverse("chat_messages", args=[self.activity.pk]))
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(len(data["messages"]), 1)
+        self.assertEqual(data["messages"][0]["content"], "¡Nos vemos en el parking!")
+        self.assertTrue(data["messages"][0]["mine"])
+
+    def test_organizer_can_use_chat(self):
+        self.client.force_login(self.organizer)
+        self.assertEqual(self.send().status_code, 201)
+
+    def test_non_registered_user_cannot_use_chat(self):
+        self.client.force_login(self.outsider)
+        self.assertEqual(self.send().status_code, 403)
+        response = self.client.get(reverse("chat_messages", args=[self.activity.pk]))
+        self.assertEqual(response.status_code, 403)
+
+    def test_anonymous_user_is_redirected(self):
+        response = self.client.get(reverse("chat_messages", args=[self.activity.pk]))
+        self.assertEqual(response.status_code, 302)
+
+    def test_empty_message_is_rejected(self):
+        self.client.force_login(self.member)
+        self.assertEqual(self.send("   ").status_code, 400)
+
+    def test_user_who_cancels_loses_chat_access(self):
+        self.client.force_login(self.member)
+        self.client.post(reverse("registration_cancel", args=[self.activity.pk]))
+        self.assertEqual(self.send().status_code, 403)
+
+
 class ActivitySearchTests(TestCase):
     """Búsqueda y filtrado de actividades (RF-09)."""
 
