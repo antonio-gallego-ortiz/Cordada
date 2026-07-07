@@ -2,10 +2,12 @@ from datetime import timedelta
 
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
+from .forms import ActivityForm
 from .models import Activity, Registration, register_user_for_activity
 
 User = get_user_model()
@@ -129,3 +131,44 @@ class ActivityPermissionTests(TestCase):
         )
         self.assertRedirects(response, reverse("activity_list"))
         self.assertFalse(Activity.objects.filter(pk=self.activity.pk).exists())
+
+
+GPX_CONTENT = b"""<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="test" xmlns="http://www.topografix.com/GPX/1/1">
+  <trk><trkseg>
+    <trkpt lat="37.0530" lon="-3.3110"><ele>2500</ele></trkpt>
+    <trkpt lat="37.0540" lon="-3.3100"><ele>2550</ele></trkpt>
+  </trkseg></trk>
+</gpx>"""
+
+
+class GpxUploadTests(TestCase):
+    """Validación del archivo GPX (RF-07)."""
+
+    def form_data(self):
+        return {
+            "title": "Ruta con track",
+            "description": "Con GPX",
+            "date": (timezone.now() + timedelta(days=7)).strftime("%Y-%m-%dT%H:%M"),
+            "difficulty": Activity.Difficulty.EASY,
+            "location": "Sierra de Huétor",
+            "meeting_point": "Área recreativa",
+            "max_participants": 5,
+        }
+
+    def test_valid_gpx_file_is_accepted(self):
+        gpx = SimpleUploadedFile("ruta.gpx", GPX_CONTENT)
+        form = ActivityForm(self.form_data(), {"gpx_file": gpx})
+        self.assertTrue(form.is_valid(), form.errors)
+
+    def test_wrong_extension_is_rejected(self):
+        wrong = SimpleUploadedFile("ruta.txt", b"no soy un gpx")
+        form = ActivityForm(self.form_data(), {"gpx_file": wrong})
+        self.assertFalse(form.is_valid())
+        self.assertIn("gpx_file", form.errors)
+
+    def test_oversized_file_is_rejected(self):
+        big = SimpleUploadedFile("ruta.gpx", b"x" * (5 * 1024 * 1024 + 1))
+        form = ActivityForm(self.form_data(), {"gpx_file": big})
+        self.assertFalse(form.is_valid())
+        self.assertIn("gpx_file", form.errors)

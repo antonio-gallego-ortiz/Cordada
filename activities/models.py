@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.core.validators import MinValueValidator
+from django.core.validators import FileExtensionValidator, MinValueValidator
 from django.db import models, transaction
 from django.urls import reverse
 from django.utils import timezone
@@ -31,6 +31,13 @@ class Activity(models.Model):
         on_delete=models.CASCADE,
         related_name="organized_activities",
         verbose_name="organizador",
+    )
+    gpx_file = models.FileField(
+        "archivo GPX",
+        upload_to="gpx/",
+        blank=True,
+        null=True,
+        validators=[FileExtensionValidator(["gpx"])],
     )
     created_at = models.DateTimeField("fecha de creación", auto_now_add=True)
 
