@@ -90,8 +90,14 @@ def activity_edit(request, pk):
 
 @login_required
 def activity_delete(request, pk):
-    """Eliminación de una actividad. Solo el organizador (RF-04)."""
-    activity = get_activity_for_organizer(request, pk)
+    """Eliminación de una actividad.
+
+    Puede eliminarla su organizador (RF-04) o un administrador como
+    labor de moderación (RF-10).
+    """
+    activity = get_object_or_404(Activity, pk=pk)
+    if activity.organizer != request.user and not request.user.is_admin:
+        raise PermissionDenied
     if request.method == "POST":
         activity.delete()
         messages.info(request, "La actividad se ha eliminado.")

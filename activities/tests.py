@@ -132,6 +132,25 @@ class ActivityPermissionTests(TestCase):
         self.assertRedirects(response, reverse("activity_list"))
         self.assertFalse(Activity.objects.filter(pk=self.activity.pk).exists())
 
+    def test_admin_can_delete_any_activity(self):
+        admin = create_user("admin")
+        admin.is_staff = True
+        admin.save()
+        self.client.force_login(admin)
+        response = self.client.post(
+            reverse("activity_delete", args=[self.activity.pk])
+        )
+        self.assertRedirects(response, reverse("activity_list"))
+        self.assertFalse(Activity.objects.filter(pk=self.activity.pk).exists())
+
+    def test_admin_cannot_edit_others_activity(self):
+        admin = create_user("admin")
+        admin.is_staff = True
+        admin.save()
+        self.client.force_login(admin)
+        response = self.client.get(reverse("activity_edit", args=[self.activity.pk]))
+        self.assertEqual(response.status_code, 403)
+
 
 class ActivitySearchTests(TestCase):
     """Búsqueda y filtrado de actividades (RF-09)."""

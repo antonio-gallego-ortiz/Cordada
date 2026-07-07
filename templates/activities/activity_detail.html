@@ -62,6 +62,16 @@
                     </a>
                 {% endif %}
 
+                {% if user.is_authenticated and user.is_admin and user != activity.organizer %}
+                    <hr>
+                    <div class="alert alert-warning py-2 d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-shield-exclamation"></i> Moderación</span>
+                        <a href="{% url 'activity_delete' activity.pk %}" class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-trash"></i> Eliminar actividad
+                        </a>
+                    </div>
+                {% endif %}
+
                 {% if not activity.is_past %}
                     {% if user == activity.organizer %}
                         <hr>
