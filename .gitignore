@@ -1,0 +1,21 @@
+# Entorno virtual
+.venv/
+
+# Python
+__pycache__/
+*.pyc
+
+# Base de datos local
+db.sqlite3
+
+# Archivos subidos por usuarios (fotos, GPX)
+media/
+
+# Configuración local / secretos
+.env
+
+# IDE / SO
+.vscode/
+.idea/
+Thumbs.db
+.claude/
