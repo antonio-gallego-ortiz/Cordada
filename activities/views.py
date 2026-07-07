@@ -1,11 +1,12 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.views.decorators.http import require_POST
 
 from .forms import ActivityForm
-from .models import Activity
+from .models import Activity, Registration, register_user_for_activity
 
 
 def activity_list(request):
@@ -19,11 +20,20 @@ def activity_list(request):
 
 
 def activity_detail(request, pk):
-    """Detalle de una actividad."""
+    """Detalle de una actividad con sus participantes."""
     activity = get_object_or_404(
         Activity.objects.select_related("organizer"), pk=pk
     )
-    return render(request, "activities/activity_detail.html", {"activity": activity})
+    registrations = activity.registrations.select_related("user")
+    return render(
+        request,
+        "activities/activity_detail.html",
+        {
+            "activity": activity,
+            "registrations": registrations,
+            "user_is_registered": activity.is_user_registered(request.user),
+        },
+    )
 
 
 @login_required
@@ -83,4 +93,48 @@ def activity_delete(request, pk):
         return redirect("activity_list")
     return render(
         request, "activities/activity_confirm_delete.html", {"activity": activity}
+    )
+
+
+@login_required
+@require_POST
+def registration_create(request, pk):
+    """Inscripción en una actividad (RF-05, RF-06)."""
+    get_object_or_404(Activity, pk=pk)
+    try:
+        register_user_for_activity(request.user, pk)
+    except ValidationError as error:
+        messages.error(request, error.message)
+    else:
+        messages.success(request, "¡Inscripción realizada! Nos vemos en la montaña.")
+    return redirect("activity_detail", pk=pk)
+
+
+@login_required
+@require_POST
+def registration_cancel(request, pk):
+    """Cancelación de la inscripción propia (RF-05)."""
+    activity = get_object_or_404(Activity, pk=pk)
+    deleted, _ = Registration.objects.filter(
+        user=request.user, activity=activity
+    ).delete()
+    if deleted:
+        messages.info(request, "Has cancelado tu inscripción.")
+    else:
+        messages.error(request, "No estabas inscrito/a en esta actividad.")
+    return redirect("activity_detail", pk=pk)
+
+
+@login_required
+def my_activities(request):
+    """Actividades en las que participa u organiza el usuario (RF-05)."""
+    registered = (
+        Activity.objects.filter(registrations__user=request.user)
+        .select_related("organizer")
+    )
+    organized = request.user.organized_activities.select_related("organizer")
+    return render(
+        request,
+        "activities/my_activities.html",
+        {"registered": registered, "organized": organized},
     )

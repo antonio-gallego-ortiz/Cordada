@@ -25,6 +25,11 @@
                 <li class="nav-item">
                     <a class="nav-link" href="/">Actividades</a>
                 </li>
+                {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'my_activities' %}">Mis actividades</a>
+                    </li>
+                {% endif %}
             </ul>
             <ul class="navbar-nav">
                 {% if user.is_authenticated %}

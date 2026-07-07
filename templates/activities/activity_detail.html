@@ -30,7 +30,13 @@
                         <i class="bi bi-signpost"></i> Punto de encuentro: {{ activity.meeting_point }}
                     </li>
                     <li class="mb-1">
-                        <i class="bi bi-people"></i> Plazas: {{ activity.max_participants }}
+                        <i class="bi bi-people"></i>
+                        Plazas: {{ activity.participants_count }} / {{ activity.max_participants }}
+                        {% if activity.is_full %}
+                            <span class="badge text-bg-secondary">Completa</span>
+                        {% else %}
+                            <span class="text-success">({{ activity.free_places }} libres)</span>
+                        {% endif %}
                     </li>
                     <li>
                         <i class="bi bi-person"></i> Organiza:
@@ -42,19 +48,71 @@
 
                 <p>{{ activity.description|linebreaksbr }}</p>
 
-                {% if user == activity.organizer %}
-                    <hr>
-                    <div class="d-flex gap-2">
-                        <a href="{% url 'activity_edit' activity.pk %}" class="btn btn-outline-success">
-                            <i class="bi bi-pencil"></i> Editar
-                        </a>
-                        <a href="{% url 'activity_delete' activity.pk %}" class="btn btn-outline-danger">
-                            <i class="bi bi-trash"></i> Eliminar
-                        </a>
-                    </div>
+                {% if not activity.is_past %}
+                    {% if user == activity.organizer %}
+                        <hr>
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'activity_edit' activity.pk %}" class="btn btn-outline-success">
+                                <i class="bi bi-pencil"></i> Editar
+                            </a>
+                            <a href="{% url 'activity_delete' activity.pk %}" class="btn btn-outline-danger">
+                                <i class="bi bi-trash"></i> Eliminar
+                            </a>
+                        </div>
+                    {% elif user.is_authenticated %}
+                        <hr>
+                        {% if user_is_registered %}
+                            <form method="post" action="{% url 'registration_cancel' activity.pk %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-outline-danger">
+                                    <i class="bi bi-x-circle"></i> Cancelar mi inscripción
+                                </button>
+                            </form>
+                        {% elif not activity.is_full %}
+                            <form method="post" action="{% url 'registration_create' activity.pk %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-success">
+                                    <i class="bi bi-check-circle"></i> Apuntarme
+                                </button>
+                            </form>
+                        {% endif %}
+                    {% else %}
+                        <hr>
+                        <p class="text-muted mb-0">
+                            <a href="{% url 'login' %}">Inicia sesión</a> para apuntarte a esta actividad.
+                        </p>
+                    {% endif %}
                 {% endif %}
             </div>
         </div>
+
+        {% if user.is_authenticated %}
+        <div class="card shadow-sm mt-4">
+            <div class="card-body p-4">
+                <h2 class="h5 mb-3">
+                    <i class="bi bi-people"></i>
+                    Participantes ({{ activity.participants_count }})
+                </h2>
+                {% if registrations %}
+                    <ul class="list-group list-group-flush">
+                        {% for registration in registrations %}
+                            <li class="list-group-item px-0 d-flex justify-content-between">
+                                <a href="{% url 'public_profile' registration.user.username %}" class="text-decoration-none">
+                                    <i class="bi bi-person-circle"></i>
+                                    {{ registration.user.get_full_name|default:registration.user.username }}
+                                </a>
+                                <span class="text-muted small">
+                                    inscrito/a el {{ registration.created_at|date:"j M Y" }}
+                                </span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted mb-0">Todavía no hay nadie apuntado. ¡Sé el primero!</p>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

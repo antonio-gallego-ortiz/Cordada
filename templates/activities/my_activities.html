@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Mis actividades{% endblock %}
+
+{% block content %}
+<h1 class="h2 mb-4">Mis actividades</h1>
+
+<h2 class="h5 text-muted">Actividades en las que participo</h2>
+{% if registered %}
+    <div class="list-group mb-4">
+        {% for activity in registered %}
+            <a href="{{ activity.get_absolute_url }}" class="list-group-item list-group-item-action">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>{{ activity.title }}</strong>
+                        <span class="text-muted small d-block">
+                            <i class="bi bi-calendar-event"></i> {{ activity.date|date:"j M Y, H:i" }}
+                            · <i class="bi bi-geo-alt"></i> {{ activity.location }}
+                        </span>
+                    </div>
+                    {% include "activities/includes/difficulty_badge.html" %}
+                </div>
+            </a>
+        {% endfor %}
+    </div>
+{% else %}
+    <p class="text-muted mb-4">Todavía no te has apuntado a ninguna actividad.</p>
+{% endif %}
+
+<h2 class="h5 text-muted">Actividades que organizo</h2>
+{% if organized %}
+    <div class="list-group mb-4">
+        {% for activity in organized %}
+            <a href="{{ activity.get_absolute_url }}" class="list-group-item list-group-item-action">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>{{ activity.title }}</strong>
+                        <span class="text-muted small d-block">
+                            <i class="bi bi-calendar-event"></i> {{ activity.date|date:"j M Y, H:i" }}
+                            · <i class="bi bi-people"></i> {{ activity.participants_count }}/{{ activity.max_participants }} inscritos
+                        </span>
+                    </div>
+                    {% include "activities/includes/difficulty_badge.html" %}
+                </div>
+            </a>
+        {% endfor %}
+    </div>
+{% else %}
+    <p class="text-muted">Todavía no has organizado ninguna actividad.</p>
+{% endif %}
+{% endblock %}

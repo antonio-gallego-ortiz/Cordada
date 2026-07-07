@@ -12,4 +12,15 @@ urlpatterns = [
         views.activity_delete,
         name="activity_delete",
     ),
+    path(
+        "actividades/<int:pk>/apuntarse/",
+        views.registration_create,
+        name="registration_create",
+    ),
+    path(
+        "actividades/<int:pk>/desapuntarse/",
+        views.registration_cancel,
+        name="registration_cancel",
+    ),
+    path("mis-actividades/", views.my_activities, name="my_activities"),
 ]
