@@ -1,0 +1,3 @@
+# build.sh se ejecuta en Linux (Render): siempre con finales de línea LF.
+build.sh text eol=lf
+*.sh text eol=lf
