@@ -1,2 +1,8 @@
 Django~=5.2.0
 Pillow~=11.0
+
+# Producción
+gunicorn~=23.0
+whitenoise~=6.8
+dj-database-url~=2.3
+psycopg[binary]~=3.2

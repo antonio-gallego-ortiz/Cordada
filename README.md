@@ -71,6 +71,34 @@ feed con me gusta y comentarios, seguimientos entre usuarios y
 python manage.py test
 ```
 
+## Despliegue en Render
+
+El repositorio incluye un blueprint ([render.yaml](render.yaml)) que crea el
+servicio web y la base de datos PostgreSQL:
+
+1. Entra en [Render](https://render.com) y elige **New → Blueprint**.
+2. Conecta este repositorio: Render leerá `render.yaml` y creará el servicio
+   `cordada` (plan gratuito) y la base de datos `cordada-db`.
+3. El script [build.sh](build.sh) instala dependencias, recopila los
+   estáticos y aplica las migraciones en cada despliegue.
+
+Variables de entorno usadas en producción:
+
+| Variable | Descripción |
+|---|---|
+| `SECRET_KEY` | Clave secreta de Django (Render la genera automáticamente) |
+| `DEBUG` | `False` en producción |
+| `DATABASE_URL` | Conexión a PostgreSQL (la inyecta Render desde la base de datos) |
+| `ALLOWED_HOSTS` | Dominios extra separados por comas (opcional; el dominio de Render se añade solo) |
+
+Para crear el usuario administrador en producción, desde la pestaña *Shell*
+del servicio: `python manage.py createsuperuser`.
+
+> **Limitación del plan gratuito:** el disco es efímero, así que los archivos
+> subidos (fotos y GPX) se pierden en cada despliegue. Para conservarlos
+> habría que usar un almacenamiento externo (S3, Cloudinary...), fuera del
+> alcance de este proyecto.
+
 ## Estructura del proyecto
 
 - `cordada/` — configuración del proyecto Django.

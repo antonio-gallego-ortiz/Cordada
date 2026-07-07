@@ -1,0 +1,26 @@
+# Blueprint de despliegue en Render (plan gratuito).
+# Crea el servicio web y la base de datos PostgreSQL de una vez:
+# https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: cordada
+    runtime: python
+    plan: free
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn cordada.wsgi:application"
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: WEB_CONCURRENCY
+        value: "4"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: cordada-db
+          property: connectionString
+
+databases:
+  - name: cordada-db
+    plan: free
