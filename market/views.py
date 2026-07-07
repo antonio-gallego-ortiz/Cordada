@@ -1,7 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
-from django.db.models import Max
+from django.db.models import Count, Max
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -114,25 +114,38 @@ def listing_set_status(request, pk):
     return redirect(listing)
 
 
-@login_required
-def my_market(request):
-    """Panel del usuario: sus anuncios y sus conversaciones."""
-    my_listings = request.user.listings.all()
-    conversations = (
-        Conversation.objects.filter(buyer=request.user)
-        | Conversation.objects.filter(listing__seller=request.user)
-    )
-    conversations = (
-        conversations.select_related("listing", "listing__seller", "buyer")
+def annotate_conversations(queryset):
+    """Ordena las conversaciones por su último mensaje."""
+    return (
+        queryset.select_related("listing", "listing__seller", "buyer")
         .annotate(last_message_at=Max("messages__created_at"))
         .order_by("-last_message_at", "-created_at")
-        .distinct()
+    )
+
+
+@login_required
+def my_conversations(request):
+    """Conversaciones del usuario: como comprador y como vendedor."""
+    buying = annotate_conversations(
+        Conversation.objects.filter(buyer=request.user)
+    )
+    selling = annotate_conversations(
+        Conversation.objects.filter(listing__seller=request.user)
     )
     return render(
         request,
-        "market/my_market.html",
-        {"my_listings": my_listings, "conversations": conversations},
+        "market/my_conversations.html",
+        {"buying": buying, "selling": selling},
     )
+
+
+@login_required
+def my_listings(request):
+    """Anuncios publicados por el usuario, con su detalle."""
+    listings = request.user.listings.annotate(
+        interested_count=Count("conversations", distinct=True)
+    )
+    return render(request, "market/my_listings.html", {"listings": listings})
 
 
 @login_required

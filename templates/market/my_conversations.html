@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Conversaciones{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2 mb-0">Conversaciones</h1>
+    <a href="{% url 'my_listings' %}" class="btn btn-outline-success">
+        <i class="bi bi-box-seam me-1"></i>Mis anuncios
+    </a>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <span class="avatar-circle" style="background-color: #dbeafe; color: #1e40af;">
+                        <i class="bi bi-bag"></i>
+                    </span>
+                    <div>
+                        <div class="fw-bold">Compras</div>
+                        <div class="small text-muted">Artículos por los que te has interesado</div>
+                    </div>
+                </div>
+                <hr class="mt-3">
+                {% if buying %}
+                    <div class="list-group list-group-flush">
+                        {% for conversation in buying %}
+                            {% include "market/includes/conversation_row.html" %}
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted small mb-0">
+                        No has contactado con ningún vendedor todavía.
+                        <a href="{% url 'listing_list' %}">Echa un vistazo al mercado</a>.
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <span class="avatar-circle" style="background-color: #d1fae5; color: #065f46;">
+                        <i class="bi bi-shop"></i>
+                    </span>
+                    <div>
+                        <div class="fw-bold">Ventas</div>
+                        <div class="small text-muted">Personas interesadas en tus anuncios</div>
+                    </div>
+                </div>
+                <hr class="mt-3">
+                {% if selling %}
+                    <div class="list-group list-group-flush">
+                        {% for conversation in selling %}
+                            {% include "market/includes/conversation_row.html" %}
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted small mb-0">
+                        Nadie ha preguntado por tus anuncios todavía.
+                        {% if not user.listings.exists %}
+                            <a href="{% url 'listing_create' %}">Publica tu primer anuncio</a>.
+                        {% endif %}
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

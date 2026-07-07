@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Mis anuncios{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2 mb-0">Mis anuncios</h1>
+    <div class="d-flex gap-2">
+        <a href="{% url 'my_conversations' %}" class="btn btn-outline-success">
+            <i class="bi bi-chat-left-text me-1"></i>Conversaciones
+        </a>
+        <a href="{% url 'listing_create' %}" class="btn btn-success">
+            <i class="bi bi-plus-lg me-1"></i>Publicar anuncio
+        </a>
+    </div>
+</div>
+
+{% if listings %}
+    <div class="row row-cols-1 row-cols-md-2 g-4">
+        {% for listing in listings %}
+            <div class="col">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body p-3 d-flex gap-3">
+                        {% if listing.photo %}
+                            <img src="{{ listing.photo.url }}" alt="" width="96" height="96"
+                                 class="rounded-3 flex-shrink-0" style="object-fit: cover;">
+                        {% else %}
+                            <div class="listing-photo-placeholder rounded-3 flex-shrink-0"
+                                 style="width: 96px; height: 96px; font-size: 1.6rem;">
+                                <i class="bi bi-image"></i>
+                            </div>
+                        {% endif %}
+                        <div class="flex-grow-1 d-flex flex-column">
+                            <div class="d-flex justify-content-between align-items-start gap-2">
+                                <div>
+                                    <a href="{{ listing.get_absolute_url }}" class="fw-semibold text-decoration-none text-reset">
+                                        {{ listing.title }}
+                                    </a>
+                                    <div class="listing-price" style="font-size: 1.05rem;">{{ listing.price_label }}</div>
+                                </div>
+                                {% if listing.status == "available" %}
+                                    <span class="badge badge-offer-sale">Disponible</span>
+                                {% elif listing.status == "reserved" %}
+                                    <span class="badge badge-status-reserved">Reservado</span>
+                                {% else %}
+                                    <span class="badge badge-status-closed">Cerrado</span>
+                                {% endif %}
+                            </div>
+                            <div class="small text-muted mb-2">
+                                <span class="me-2"><i class="bi bi-tag me-1"></i>{{ listing.get_category_display }}</span>
+                                <span class="me-2"><i class="bi bi-clock me-1"></i>{{ listing.created_at|date:"j M Y" }}</span>
+                                <span><i class="bi bi-chat-dots me-1"></i>{{ listing.interested_count }} interesado{{ listing.interested_count|pluralize }}</span>
+                            </div>
+                            <div class="mt-auto d-flex flex-wrap gap-2 align-items-center">
+                                <form method="post" action="{% url 'listing_set_status' listing.pk %}" class="d-flex gap-1">
+                                    {% csrf_token %}
+                                    {% if listing.status != "available" %}
+                                        <button name="status" value="available" class="btn btn-sm btn-outline-success">Disponible</button>
+                                    {% endif %}
+                                    {% if listing.status != "reserved" %}
+                                        <button name="status" value="reserved" class="btn btn-sm btn-outline-warning">Reservado</button>
+                                    {% endif %}
+                                    {% if listing.status != "closed" %}
+                                        <button name="status" value="closed" class="btn btn-sm btn-outline-secondary">Vendido</button>
+                                    {% endif %}
+                                </form>
+                                <div class="ms-auto d-flex gap-1">
+                                    <a href="{% url 'listing_edit' listing.pk %}" class="btn btn-sm btn-outline-success" title="Editar">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a href="{% url 'listing_delete' listing.pk %}" class="btn btn-sm btn-outline-danger" title="Eliminar">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="card border-2" style="border-style: dashed;">
+        <div class="card-body p-5 text-center">
+            <div class="avatar-circle avatar-circle-lg mx-auto mb-3" style="background-color: #f1f5f9; color: #94a3b8;">
+                <i class="bi bi-box-seam"></i>
+            </div>
+            <h2 class="h5">Todavía no has publicado ningún anuncio</h2>
+            <p class="text-muted mb-4">Dale una segunda vida a tu material de montaña.</p>
+            <a href="{% url 'listing_create' %}" class="btn btn-success px-4">
+                <i class="bi bi-plus-lg me-1"></i>Publicar anuncio
+            </a>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}
