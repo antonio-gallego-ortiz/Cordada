@@ -1,0 +1,226 @@
+/* ============================================================
+   Cordada — hoja de estilos propia
+   Lenguaje visual inspirado en SubShareV2: fondo gris claro,
+   tarjetas blancas redondeadas que se elevan al pasar el ratón,
+   tipografía Inter, acentos sólidos y etiquetas en mayúsculas.
+   ============================================================ */
+
+:root {
+    --cordada-primary: #059669;        /* verde montaña (emerald-600) */
+    --cordada-primary-dark: #047857;
+    --cordada-primary-soft: #d1fae5;
+    --cordada-ink: #0f172a;            /* texto principal */
+    --cordada-muted: #64748b;          /* texto secundario */
+    --cordada-bg: #f3f4f6;             /* fondo general */
+    --cordada-border: #e5e7eb;
+    --cordada-radius: 1rem;
+}
+
+body {
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+    background-color: var(--cordada-bg);
+    color: var(--cordada-ink);
+}
+
+h1, h2, h3, h4, h5, h6 { font-weight: 700; }
+
+/* ---------- Botones ---------- */
+.btn { border-radius: 0.75rem; font-weight: 600; }
+
+.btn-success {
+    --bs-btn-bg: var(--cordada-primary);
+    --bs-btn-border-color: var(--cordada-primary);
+    --bs-btn-hover-bg: var(--cordada-primary-dark);
+    --bs-btn-hover-border-color: var(--cordada-primary-dark);
+    --bs-btn-active-bg: var(--cordada-primary-dark);
+    --bs-btn-active-border-color: var(--cordada-primary-dark);
+    box-shadow: 0 4px 14px rgba(5, 150, 105, 0.25);
+}
+
+.btn-outline-success {
+    --bs-btn-color: var(--cordada-primary);
+    --bs-btn-border-color: var(--cordada-primary);
+    --bs-btn-hover-bg: var(--cordada-primary);
+    --bs-btn-hover-border-color: var(--cordada-primary);
+    --bs-btn-active-bg: var(--cordada-primary-dark);
+    --bs-btn-active-border-color: var(--cordada-primary-dark);
+}
+
+/* ---------- Tarjetas ---------- */
+.card {
+    border-radius: var(--cordada-radius);
+    border: 1px solid var(--cordada-border);
+}
+
+.card-lift {
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.card-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.08),
+                0 8px 10px -6px rgba(15, 23, 42, 0.06);
+    border-color: #a7f3d0;
+}
+
+/* ---------- Navbar ---------- */
+.navbar-cordada {
+    background-color: #ffffff;
+    border-bottom: 1px solid var(--cordada-border);
+}
+
+.navbar-cordada .navbar-brand {
+    color: var(--cordada-primary);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+.navbar-cordada .nav-link {
+    color: #374151;
+    font-weight: 500;
+    border-radius: 0.5rem;
+    padding-left: 0.85rem;
+    padding-right: 0.85rem;
+}
+
+.navbar-cordada .nav-link:hover { background-color: #f3f4f6; color: var(--cordada-ink); }
+.navbar-cordada .nav-link.active { color: var(--cordada-primary); font-weight: 600; }
+
+/* ---------- Hero de portada ---------- */
+.hero-cordada {
+    background: linear-gradient(135deg, #064e3b 0%, #059669 60%, #34d399 100%);
+    border-radius: 1.25rem;
+    color: #ffffff;
+    overflow: hidden;
+    position: relative;
+}
+
+.hero-cordada::after {
+    /* silueta de montañas */
+    content: "";
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 55%;
+    background:
+        linear-gradient(160deg, transparent 58%, rgba(255, 255, 255, 0.10) 58.5%) no-repeat,
+        linear-gradient(200deg, transparent 63%, rgba(255, 255, 255, 0.14) 63.5%) no-repeat;
+    pointer-events: none;
+}
+
+.hero-cordada .lead { color: rgba(255, 255, 255, 0.85); }
+
+/* ---------- Etiquetas y texto auxiliar ---------- */
+.eyebrow {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--cordada-muted);
+}
+
+.text-cordada { color: var(--cordada-primary) !important; }
+
+/* ---------- Formularios ---------- */
+.form-control, .form-select {
+    border-radius: 0.75rem;
+    padding-top: 0.6rem;
+    padding-bottom: 0.6rem;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--cordada-primary);
+    box-shadow: 0 0 0 0.25rem rgba(5, 150, 105, 0.15);
+}
+
+.form-label { font-weight: 600; font-size: 0.85rem; }
+
+/* Campo con icono dentro (páginas de acceso) */
+.input-icon-group { position: relative; }
+.input-icon-group > i {
+    position: absolute;
+    left: 0.9rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+    z-index: 5;
+}
+.input-icon-group .form-control { padding-left: 2.5rem; }
+
+/* ---------- Avatares ---------- */
+.avatar-circle {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 50%;
+    background-color: var(--cordada-primary);
+    color: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+}
+
+.avatar-circle-lg { width: 7rem; height: 7rem; font-size: 2.2rem; }
+.avatar-photo { object-fit: cover; border-radius: 50%; }
+
+/* ---------- Insignias de dificultad y deportes ---------- */
+.badge { font-weight: 600; border-radius: 999px; padding: 0.4em 0.85em; }
+
+.badge-difficulty-easy { background-color: #d1fae5; color: #065f46; }
+.badge-difficulty-moderate { background-color: #fef3c7; color: #92400e; }
+.badge-difficulty-hard { background-color: #fee2e2; color: #991b1b; }
+.badge-difficulty-very_hard { background-color: #1e293b; color: #f8fafc; }
+
+.badge-sport { background-color: #e0f2fe; color: #075985; }
+
+/* ---------- Barra de ocupación de plazas ---------- */
+.places-bar { height: 0.5rem; background-color: #f1f5f9; border-radius: 999px; overflow: hidden; }
+.places-bar > div {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--cordada-primary), #34d399);
+    transition: width 0.5s ease;
+}
+
+/* ---------- Chat de actividad ---------- */
+.chat-box {
+    max-height: 420px;
+    overflow-y: auto;
+    background-color: #f8fafc;
+    border-radius: 0.75rem;
+    border: 1px solid var(--cordada-border);
+}
+
+.chat-message { max-width: 85%; }
+
+.chat-bubble {
+    border-radius: 1rem;
+    padding: 0.5rem 0.9rem;
+    background-color: #ffffff;
+    border: 1px solid var(--cordada-border);
+}
+
+.chat-message.mine { margin-left: auto; }
+.chat-message.mine .chat-bubble {
+    background-color: var(--cordada-primary);
+    color: #ffffff;
+    border-color: var(--cordada-primary);
+}
+
+/* ---------- Detalle: fichas de datos técnicos ---------- */
+.stat-tile {
+    background-color: #f8fafc;
+    border: 1px solid var(--cordada-border);
+    border-radius: 0.75rem;
+    padding: 0.75rem 1rem;
+    text-align: center;
+}
+
+.stat-tile .value { font-weight: 700; font-size: 1.1rem; }
+
+/* ---------- Pie de página ---------- */
+.footer-cordada {
+    background-color: #ffffff;
+    border-top: 1px solid var(--cordada-border);
+}

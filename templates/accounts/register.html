@@ -3,18 +3,26 @@
 {% block title %}Registro{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6 col-lg-5">
+<div class="row justify-content-center py-4">
+    <div class="col-md-8 col-lg-6 col-xl-5">
+        <div class="text-center mb-4">
+            <span class="avatar-circle avatar-circle-lg mx-auto" style="width: 4.5rem; height: 4.5rem; font-size: 2rem;">
+                <i class="bi bi-triangle-fill"></i>
+            </span>
+            <h1 class="h3 mt-3 mb-1">Únete a Cordada</h1>
+            <p class="text-muted small">Crea tu cuenta y empieza a compartir montaña</p>
+        </div>
         <div class="card shadow-sm">
-            <div class="card-body p-4">
-                <h1 class="h3 mb-4 text-center">Crear una cuenta</h1>
+            <div class="card-body p-4 p-md-5">
                 <form method="post" novalidate>
                     {% csrf_token %}
                     {% include "includes/form_fields.html" %}
-                    <button type="submit" class="btn btn-success w-100">Registrarse</button>
+                    <button type="submit" class="btn btn-success w-100 py-2">
+                        Crear cuenta <i class="bi bi-arrow-right ms-1"></i>
+                    </button>
                 </form>
-                <p class="text-center mt-3 mb-0 small">
-                    ¿Ya tienes cuenta? <a href="{% url 'login' %}">Inicia sesión</a>
+                <p class="text-center mt-4 mb-0 small text-muted">
+                    ¿Ya tienes cuenta? <a href="{% url 'login' %}" class="fw-semibold">Inicia sesión</a>
                 </p>
             </div>
         </div>
