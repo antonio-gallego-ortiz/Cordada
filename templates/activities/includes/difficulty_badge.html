@@ -1,0 +1,9 @@
+{% if activity.difficulty == "easy" %}
+    <span class="badge text-bg-success">{{ activity.get_difficulty_display }}</span>
+{% elif activity.difficulty == "moderate" %}
+    <span class="badge text-bg-warning">{{ activity.get_difficulty_display }}</span>
+{% elif activity.difficulty == "hard" %}
+    <span class="badge text-bg-danger">{{ activity.get_difficulty_display }}</span>
+{% else %}
+    <span class="badge text-bg-dark">{{ activity.get_difficulty_display }}</span>
+{% endif %}
