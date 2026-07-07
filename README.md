@@ -8,9 +8,11 @@ Trabajo de Fin de Grado — Ingeniería Informática.
 
 Una plataforma sencilla y gratuita donde cualquier aficionado a la montaña puede:
 
-- Crear un perfil y formar parte de la comunidad.
-- Publicar actividades (rutas, ascensiones, travesías...).
+- Crear un perfil con sus deportes y nivel (senderismo, alpinismo, esquí, escalada...).
+- Publicar actividades (rutas, ascensiones, travesías...) con datos técnicos
+  (distancia, desnivel, duración) y el material necesario.
 - Apuntarse a actividades de otros usuarios.
+- Hablar con el resto de inscritos en el chat de cada actividad.
 - Compartir el recorrido mediante un archivo GPX visualizado sobre un mapa.
 - Buscar y filtrar actividades por dificultad y fecha.
 
@@ -42,11 +44,18 @@ pip install -r requirements.txt
 # 4. Aplicar migraciones
 python manage.py migrate
 
-# 5. Arrancar el servidor de desarrollo
+# 5. (Opcional) Cargar datos de ejemplo
+python manage.py seed_demo
+
+# 6. Arrancar el servidor de desarrollo
 python manage.py runserver
 ```
 
 La aplicación quedará disponible en `http://127.0.0.1:8000/`.
+
+Los datos de ejemplo crean 4 usuarios (`demo`, `ana`, `luis`, `marta`,
+contraseña `demo-cordada-2026`) y 5 actividades con track GPX,
+inscripciones y conversaciones de chat.
 
 ## Tests
 
