@@ -16,6 +16,7 @@ from django.utils import timezone
 
 from accounts.models import UserSport
 from activities.models import Activity, ActivityMessage, register_user_for_activity
+from market.models import Conversation, Listing, MarketMessage
 
 User = get_user_model()
 
@@ -169,6 +170,72 @@ ACTIVITIES = [
 ]
 
 
+LISTINGS = [
+    {
+        "title": "Botas La Sportiva Trango Tower (42)",
+        "description": (
+            "Botas de alta montaña semirrígidas, cramponables. Dos temporadas de uso, "
+            "suela en muy buen estado. Las vendo por cambio de talla."
+        ),
+        "category": "footwear",
+        "condition": "good",
+        "offer_type": "sale",
+        "price": "95.00",
+        "location": "Granada",
+        "seller": "demo",
+    },
+    {
+        "title": "Esquís de travesía + pieles (170 cm)",
+        "description": (
+            "Equipo completo de travesía: esquís con fijaciones y pieles a medida. "
+            "Ideal para iniciarse sin gastarse un dineral. Alquiler por días o fines de semana."
+        ),
+        "category": "snow",
+        "condition": "good",
+        "offer_type": "rent",
+        "price": "18.00",
+        "location": "Granada",
+        "seller": "luis",
+    },
+    {
+        "title": "Cuerda dinámica 60 m (revisar antes de usar)",
+        "description": (
+            "Cuerda de escalada de 9,8 mm y 60 m. Sin caídas fuertes, guardada en seco. "
+            "La presto gratis a gente del club para salidas puntuales."
+        ),
+        "category": "climbing",
+        "condition": "used",
+        "offer_type": "loan",
+        "price": None,
+        "location": "Monachil",
+        "seller": "ana",
+    },
+    {
+        "title": "Tienda MSR Hubba Hubba 2 plazas",
+        "description": (
+            "Tienda ligera de 3 estaciones, 1,7 kg. Usada en dos travesías, sin roturas "
+            "ni reparaciones. Incluye footprint."
+        ),
+        "category": "camping",
+        "condition": "like_new",
+        "offer_type": "sale",
+        "price": "260.00",
+        "location": "Madrid",
+        "seller": "marta",
+    },
+    {
+        "title": "GPS Garmin eTrex 32x",
+        "description": "GPS de mano con mapas topográficos de España cargados. Con funda y cable.",
+        "category": "electronics",
+        "condition": "like_new",
+        "offer_type": "sale",
+        "price": "140.00",
+        "location": "León",
+        "seller": "luis",
+    },
+]
+
+
 def build_gpx(name, waypoints, points_per_leg=12):
     """Genera un GPX sencillo interpolando entre puntos de paso."""
     parts = [
@@ -196,7 +263,16 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         if User.objects.filter(username="demo").exists():
-            self.stdout.write(self.style.WARNING("Los datos de demo ya existen."))
+            users = {u.username: u for u in User.objects.filter(
+                username__in=[d["username"] for d in USERS]
+            )}
+            self.seed_listings(users)
+            self.stdout.write(
+                self.style.WARNING(
+                    "Los usuarios de demo ya existían; solo se han añadido "
+                    "los anuncios del mercado que faltaban."
+                )
+            )
             return
 
         users = {}
@@ -240,9 +316,45 @@ class Command(BaseCommand):
                     activity=activity, user=users[username], content=content
                 )
 
+        self.seed_listings(users)
+
         self.stdout.write(
             self.style.SUCCESS(
-                f"Datos de demo creados: {len(USERS)} usuarios y "
-                f"{len(ACTIVITIES)} actividades (contraseña: {PASSWORD})."
+                f"Datos de demo creados: {len(USERS)} usuarios, "
+                f"{len(ACTIVITIES)} actividades y {len(LISTINGS)} anuncios "
+                f"(contraseña: {PASSWORD})."
             )
+        )
+
+    def seed_listings(self, users):
+        """Crea los anuncios del mercado y una conversación de ejemplo."""
+        if Listing.objects.exists():
+            return
+        listings = {}
+        for data in LISTINGS:
+            listing = Listing.objects.create(
+                title=data["title"],
+                description=data["description"],
+                category=data["category"],
+                condition=data["condition"],
+                offer_type=data["offer_type"],
+                price=data["price"],
+                location=data["location"],
+                seller=users[data["seller"]],
+            )
+            listings[data["title"]] = listing
+
+        boots = listings["Botas La Sportiva Trango Tower (42)"]
+        conversation = Conversation.objects.create(
+            listing=boots, buyer=users["marta"]
+        )
+        MarketMessage.objects.create(
+            conversation=conversation,
+            sender=users["marta"],
+            content="¡Hola! ¿Las botas siguen disponibles? ¿Aceptarías 85 €?",
+        )
+        MarketMessage.objects.create(
+            conversation=conversation,
+            sender=users["demo"],
+            content="Hola Marta, sí. Por 90 € te las llevo yo a la próxima quedada.",
         )

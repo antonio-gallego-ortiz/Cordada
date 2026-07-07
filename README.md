@@ -15,6 +15,8 @@ Una plataforma sencilla y gratuita donde cualquier aficionado a la montaña pued
 - Hablar con el resto de inscritos en el chat de cada actividad.
 - Compartir el recorrido mediante un archivo GPX visualizado sobre un mapa.
 - Buscar y filtrar actividades por dificultad y fecha.
+- Comprar, vender, alquilar o prestar material de segunda mano en el mercado,
+  con chat privado entre comprador y vendedor.
 
 ## Stack tecnológico
 
@@ -54,8 +56,9 @@ python manage.py runserver
 La aplicación quedará disponible en `http://127.0.0.1:8000/`.
 
 Los datos de ejemplo crean 4 usuarios (`demo`, `ana`, `luis`, `marta`,
-contraseña `demo-cordada-2026`) y 5 actividades con track GPX,
-inscripciones y conversaciones de chat.
+contraseña `demo-cordada-2026`), 5 actividades con track GPX,
+inscripciones y conversaciones de chat, y 5 anuncios en el mercado
+de material.
 
 ## Tests
 
@@ -67,5 +70,7 @@ python manage.py test
 
 - `cordada/` — configuración del proyecto Django.
 - `accounts/` — gestión de usuarios: registro, perfil, autenticación.
-- `activities/` — actividades, inscripciones y tracks GPX.
+- `activities/` — actividades, inscripciones, tracks GPX y chat de actividad.
+- `market/` — mercado de material de segunda mano con chat comprador-vendedor.
 - `templates/` — plantillas HTML compartidas.
+- `static/` — hoja de estilos y JavaScript propios.
