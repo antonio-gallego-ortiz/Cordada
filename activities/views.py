@@ -52,7 +52,7 @@ def activity_detail(request, pk):
 def activity_create(request):
     """Creación de una actividad (RF-03). Solo usuarios autenticados."""
     if request.method == "POST":
-        form = ActivityForm(request.POST)
+        form = ActivityForm(request.POST, request.FILES)
         if form.is_valid():
             activity = form.save(commit=False)
             activity.organizer = request.user
@@ -81,7 +81,7 @@ def activity_edit(request, pk):
     """Edición de una actividad. Solo el organizador (RF-04)."""
     activity = get_activity_for_organizer(request, pk)
     if request.method == "POST":
-        form = ActivityForm(request.POST, instance=activity)
+        form = ActivityForm(request.POST, request.FILES, instance=activity)
         if form.is_valid():
             form.save()
             messages.success(request, "Actividad actualizada correctamente.")

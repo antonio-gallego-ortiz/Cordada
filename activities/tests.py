@@ -291,3 +291,26 @@ class GpxUploadTests(TestCase):
         form = ActivityForm(self.form_data(), {"gpx_file": big})
         self.assertFalse(form.is_valid())
         self.assertIn("gpx_file", form.errors)
+
+    def test_gpx_is_saved_when_creating_through_the_view(self):
+        """Regresión: la vista debe pasar request.FILES al formulario."""
+        user = create_user("organizadora")
+        self.client.force_login(user)
+        data = self.form_data()
+        data["gpx_file"] = SimpleUploadedFile("ruta.gpx", GPX_CONTENT)
+        response = self.client.post(reverse("activity_create"), data)
+        activity = Activity.objects.get(title=data["title"])
+        self.assertRedirects(response, activity.get_absolute_url())
+        self.assertTrue(activity.gpx_file, "El GPX no se guardó al crear la actividad")
+        activity.gpx_file.delete(save=False)
+
+    def test_gpx_is_saved_when_editing_through_the_view(self):
+        user = create_user("organizadora")
+        activity = create_activity(user)
+        self.client.force_login(user)
+        data = self.form_data()
+        data["gpx_file"] = SimpleUploadedFile("ruta.gpx", GPX_CONTENT)
+        self.client.post(reverse("activity_edit", args=[activity.pk]), data)
+        activity.refresh_from_db()
+        self.assertTrue(activity.gpx_file, "El GPX no se guardó al editar la actividad")
+        activity.gpx_file.delete(save=False)
