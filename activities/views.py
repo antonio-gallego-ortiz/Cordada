@@ -5,17 +5,22 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
-from .forms import ActivityForm
+from .forms import ActivityForm, ActivitySearchForm
 from .models import Activity, Registration, register_user_for_activity
 
 
 def activity_list(request):
-    """Listado de actividades futuras (portada)."""
-    activities = Activity.objects.filter(date__gte=timezone.now()).select_related(
-        "organizer"
-    )
+    """Listado de actividades con búsqueda y filtros (RF-09)."""
+    form = ActivitySearchForm(request.GET)
+    activities = Activity.objects.select_related("organizer")
+    if form.is_valid():
+        activities = form.filter_queryset(activities)
+    else:
+        activities = activities.filter(date__gte=timezone.now())
     return render(
-        request, "activities/activity_list.html", {"activities": activities}
+        request,
+        "activities/activity_list.html",
+        {"activities": activities, "form": form},
     )
 
 

@@ -1,4 +1,5 @@
 from django import forms
+from django.db.models import Q
 from django.utils import timezone
 
 from accounts.forms import BootstrapFormMixin
@@ -39,3 +40,46 @@ class ActivityForm(BootstrapFormMixin, forms.ModelForm):
                 "El archivo GPX no puede superar los 5 MB."
             )
         return gpx_file
+
+
+class ActivitySearchForm(BootstrapFormMixin, forms.Form):
+    """Búsqueda y filtrado del listado de actividades (RF-09)."""
+
+    q = forms.CharField(
+        label="Buscar",
+        required=False,
+        widget=forms.TextInput(attrs={"placeholder": "Título o ubicación..."}),
+    )
+    difficulty = forms.ChoiceField(
+        label="Dificultad",
+        required=False,
+        choices=[("", "Todas")] + list(Activity.Difficulty.choices),
+    )
+    date_from = forms.DateField(
+        label="Desde",
+        required=False,
+        widget=forms.DateInput(attrs={"type": "date"}),
+    )
+    date_to = forms.DateField(
+        label="Hasta",
+        required=False,
+        widget=forms.DateInput(attrs={"type": "date"}),
+    )
+    include_past = forms.BooleanField(label="Incluir actividades pasadas", required=False)
+
+    def filter_queryset(self, queryset):
+        """Aplica los filtros del formulario sobre el queryset de actividades."""
+        data = self.cleaned_data
+        if not data.get("include_past"):
+            queryset = queryset.filter(date__gte=timezone.now())
+        if data.get("q"):
+            queryset = queryset.filter(
+                Q(title__icontains=data["q"]) | Q(location__icontains=data["q"])
+            )
+        if data.get("difficulty"):
+            queryset = queryset.filter(difficulty=data["difficulty"])
+        if data.get("date_from"):
+            queryset = queryset.filter(date__date__gte=data["date_from"])
+        if data.get("date_to"):
+            queryset = queryset.filter(date__date__lte=data["date_to"])
+        return queryset

@@ -133,6 +133,56 @@ class ActivityPermissionTests(TestCase):
         self.assertFalse(Activity.objects.filter(pk=self.activity.pk).exists())
 
 
+class ActivitySearchTests(TestCase):
+    """Búsqueda y filtrado de actividades (RF-09)."""
+
+    def setUp(self):
+        organizer = create_user("organizadora")
+        self.future_easy = create_activity(
+            organizer,
+            title="Paseo por la Vereda de la Estrella",
+            difficulty=Activity.Difficulty.EASY,
+            date=timezone.now() + timedelta(days=3),
+        )
+        self.future_hard = create_activity(
+            organizer,
+            title="Integral de Sierra Nevada",
+            difficulty=Activity.Difficulty.HARD,
+            date=timezone.now() + timedelta(days=30),
+        )
+        self.past = create_activity(
+            organizer,
+            title="Ruta ya celebrada",
+            date=timezone.now() - timedelta(days=3),
+        )
+
+    def get_titles(self, params=""):
+        response = self.client.get(f"/?{params}")
+        return [a.title for a in response.context["activities"]]
+
+    def test_default_shows_only_future_activities(self):
+        titles = self.get_titles()
+        self.assertIn(self.future_easy.title, titles)
+        self.assertNotIn(self.past.title, titles)
+
+    def test_filter_by_text(self):
+        titles = self.get_titles("q=vereda")
+        self.assertEqual(titles, [self.future_easy.title])
+
+    def test_filter_by_difficulty(self):
+        titles = self.get_titles("difficulty=hard")
+        self.assertEqual(titles, [self.future_hard.title])
+
+    def test_filter_by_date_range(self):
+        date_to = (timezone.now() + timedelta(days=10)).date().isoformat()
+        titles = self.get_titles(f"date_to={date_to}")
+        self.assertEqual(titles, [self.future_easy.title])
+
+    def test_include_past_activities(self):
+        titles = self.get_titles("include_past=on")
+        self.assertIn(self.past.title, titles)
+
+
 GPX_CONTENT = b"""<?xml version="1.0" encoding="UTF-8"?>
 <gpx version="1.1" creator="test" xmlns="http://www.topografix.com/GPX/1/1">
   <trk><trkseg>
