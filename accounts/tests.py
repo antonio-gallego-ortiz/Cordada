@@ -24,7 +24,7 @@ class AccountTests(TestCase):
 
     def test_register_creates_user_and_logs_in(self):
         response = self.client.post(reverse("register"), self.register_data())
-        self.assertRedirects(response, reverse("activity_list"))
+        self.assertRedirects(response, reverse("feed"))
         user = User.objects.get(username="montanera")
         self.assertEqual(user.email, "maria@example.com")
         # La contraseña se guarda hasheada, nunca en claro.
@@ -72,7 +72,7 @@ class AccountTests(TestCase):
         )
         self.client.force_login(user)
         response = self.client.post(reverse("account_delete"))
-        self.assertRedirects(response, reverse("activity_list"))
+        self.assertRedirects(response, reverse("feed"))
         self.assertFalse(User.objects.filter(username="ana").exists())
 
     def test_public_profile_is_visible(self):

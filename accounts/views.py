@@ -11,14 +11,14 @@ User = get_user_model()
 def register(request):
     """Registro de un nuevo usuario (RF-01)."""
     if request.user.is_authenticated:
-        return redirect("activity_list")
+        return redirect("feed")
     if request.method == "POST":
         form = RegisterForm(request.POST)
         if form.is_valid():
             user = form.save()
             login(request, user)
             messages.success(request, "¡Bienvenido/a a Cordada! Tu cuenta se ha creado correctamente.")
-            return redirect("activity_list")
+            return redirect("feed")
     else:
         form = RegisterForm()
     return render(request, "accounts/register.html", {"form": form})
@@ -59,11 +59,22 @@ def account_delete(request):
         logout(request)
         user.delete()
         messages.info(request, "Tu cuenta se ha eliminado. ¡Esperamos verte de nuevo en la montaña!")
-        return redirect("activity_list")
+        return redirect("feed")
     return render(request, "accounts/account_delete.html")
 
 
 def public_profile(request, username):
-    """Perfil público de cualquier usuario."""
+    """Perfil público de cualquier usuario, con su estado de seguimiento."""
+    from feed.models import Follow
+
     profile_user = get_object_or_404(User, username=username, is_active=True)
-    return render(request, "accounts/public_profile.html", {"profile_user": profile_user})
+    is_following = False
+    if request.user.is_authenticated and request.user != profile_user:
+        is_following = Follow.objects.filter(
+            follower=request.user, followed=profile_user
+        ).exists()
+    return render(
+        request,
+        "accounts/public_profile.html",
+        {"profile_user": profile_user, "is_following": is_following},
+    )

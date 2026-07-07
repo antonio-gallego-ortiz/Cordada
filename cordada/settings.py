@@ -40,6 +40,8 @@ INSTALLED_APPS = [
     "accounts",
     "activities",
     "market",
+    "feed",
+    "communities",
 ]
 
 MIDDLEWARE = [
@@ -129,8 +131,8 @@ AUTH_USER_MODEL = "accounts.User"
 
 # Authentication redirects
 LOGIN_URL = "login"
-LOGIN_REDIRECT_URL = "activity_list"
-LOGOUT_REDIRECT_URL = "activity_list"
+LOGIN_REDIRECT_URL = "feed"
+LOGOUT_REDIRECT_URL = "feed"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

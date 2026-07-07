@@ -7,6 +7,8 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("cuenta/", include("accounts.urls")),
     path("mercado/", include("market.urls")),
+    path("comunidades/", include("communities.urls")),
+    path("", include("feed.urls")),
     path("", include("activities.urls")),
 ]
 

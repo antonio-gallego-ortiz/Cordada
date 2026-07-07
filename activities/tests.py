@@ -226,7 +226,7 @@ class ActivitySearchTests(TestCase):
         )
 
     def get_titles(self, params=""):
-        response = self.client.get(f"/?{params}")
+        response = self.client.get(f"{reverse('activity_list')}?{params}")
         return [a.title for a in response.context["activities"]]
 
     def test_default_shows_only_future_activities(self):
