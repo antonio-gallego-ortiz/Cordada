@@ -130,6 +130,28 @@ class Registration(models.Model):
         return f"{self.user} → {self.activity}"
 
 
+class ActivityPhoto(models.Model):
+    """Fotografía de la ruta: vías de ascensión, pasos clave, paisajes..."""
+
+    activity = models.ForeignKey(
+        Activity,
+        on_delete=models.CASCADE,
+        related_name="photos",
+        verbose_name="actividad",
+    )
+    image = models.ImageField("imagen", upload_to="activity_photos/")
+    caption = models.CharField("pie de foto", max_length=150, blank=True)
+    created_at = models.DateTimeField("fecha de subida", auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at"]
+        verbose_name = "foto de la actividad"
+        verbose_name_plural = "fotos de la actividad"
+
+    def __str__(self):
+        return f"Foto de {self.activity}"
+
+
 class ActivityMessage(models.Model):
     """Mensaje del chat de una actividad (solo organizador e inscritos)."""
 

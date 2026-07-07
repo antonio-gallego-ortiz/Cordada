@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Activity, ActivityMessage, Registration
+from .models import Activity, ActivityMessage, ActivityPhoto, Registration
 
 
 @admin.register(Activity)
@@ -14,6 +14,11 @@ class ActivityAdmin(admin.ModelAdmin):
 class RegistrationAdmin(admin.ModelAdmin):
     list_display = ("user", "activity", "created_at")
     list_filter = ("created_at",)
+
+
+@admin.register(ActivityPhoto)
+class ActivityPhotoAdmin(admin.ModelAdmin):
+    list_display = ("activity", "caption", "created_at")
 
 
 @admin.register(ActivityMessage)

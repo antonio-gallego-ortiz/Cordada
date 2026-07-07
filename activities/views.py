@@ -10,6 +10,7 @@ from .forms import ActivityForm, ActivitySearchForm
 from .models import (
     Activity,
     ActivityMessage,
+    ActivityPhoto,
     Registration,
     register_user_for_activity,
 )
@@ -42,6 +43,7 @@ def activity_detail(request, pk):
         {
             "activity": activity,
             "registrations": registrations,
+            "photos": activity.photos.all(),
             "user_is_registered": activity.is_user_registered(request.user),
             "user_can_chat": activity.can_chat(request.user),
         },
@@ -141,6 +143,56 @@ def registration_cancel(request, pk):
     else:
         messages.error(request, "No estabas inscrito/a en esta actividad.")
     return redirect("activity_detail", pk=pk)
+
+
+MAX_PHOTOS_PER_ACTIVITY = 12
+MAX_PHOTO_SIZE = 5 * 1024 * 1024
+
+
+@login_required
+@require_POST
+def activity_photo_add(request, pk):
+    """Subida de fotos de la ruta. Solo el organizador."""
+    activity = get_activity_for_organizer(request, pk)
+    images = request.FILES.getlist("images")
+    if not images:
+        messages.error(request, "Selecciona al menos una imagen.")
+        return redirect(activity)
+    free_slots = MAX_PHOTOS_PER_ACTIVITY - activity.photos.count()
+    if len(images) > free_slots:
+        messages.error(
+            request,
+            f"Máximo {MAX_PHOTOS_PER_ACTIVITY} fotos por actividad "
+            f"(quedan {free_slots} huecos).",
+        )
+        return redirect(activity)
+    added = 0
+    for image in images:
+        if image.size > MAX_PHOTO_SIZE:
+            messages.error(request, f"«{image.name}» supera los 5 MB y se ha omitido.")
+            continue
+        if not image.content_type.startswith("image/"):
+            messages.error(request, f"«{image.name}» no es una imagen y se ha omitido.")
+            continue
+        ActivityPhoto.objects.create(activity=activity, image=image)
+        added += 1
+    if added:
+        messages.success(request, f"Se han añadido {added} foto{'s' if added != 1 else ''}.")
+    return redirect(activity)
+
+
+@login_required
+@require_POST
+def activity_photo_delete(request, pk):
+    """Eliminación de una foto: el organizador o un administrador."""
+    photo = get_object_or_404(ActivityPhoto.objects.select_related("activity"), pk=pk)
+    if photo.activity.organizer != request.user and not request.user.is_admin:
+        raise PermissionDenied
+    activity = photo.activity
+    photo.image.delete(save=False)
+    photo.delete()
+    messages.info(request, "Foto eliminada.")
+    return redirect(activity)
 
 
 def get_activity_for_chat(request, pk):

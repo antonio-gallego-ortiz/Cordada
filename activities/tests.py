@@ -8,7 +8,12 @@ from django.urls import reverse
 from django.utils import timezone
 
 from .forms import ActivityForm
-from .models import Activity, Registration, register_user_for_activity
+from .models import (
+    Activity,
+    ActivityPhoto,
+    Registration,
+    register_user_for_activity,
+)
 
 User = get_user_model()
 
@@ -200,6 +205,74 @@ class ActivityChatTests(TestCase):
         self.client.force_login(self.member)
         self.client.post(reverse("registration_cancel", args=[self.activity.pk]))
         self.assertEqual(self.send().status_code, 403)
+
+
+# PNG mínimo de 1x1 píxel, suficiente para que Pillow lo valide.
+TINY_PNG = (
+    b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01"
+    b"\x08\x02\x00\x00\x00\x90wS\xde\x00\x00\x00\x0cIDATx\x9cc\xf8\xcf\xc0"
+    b"\x00\x00\x00\x03\x00\x01\x1e\xdd\x8d\xb0\x00\x00\x00\x00IEND\xaeB`\x82"
+)
+
+
+def tiny_image(name="foto.png"):
+    return SimpleUploadedFile(name, TINY_PNG, content_type="image/png")
+
+
+class ActivityPhotoTests(TestCase):
+    """Fotos de la ruta: subida y borrado con permisos."""
+
+    def setUp(self):
+        self.organizer = create_user("organizadora")
+        self.other = create_user("otra")
+        self.activity = create_activity(self.organizer)
+
+    def tearDown(self):
+        for photo in ActivityPhoto.objects.all():
+            photo.image.delete(save=False)
+
+    def upload(self, files):
+        return self.client.post(
+            reverse("activity_photo_add", args=[self.activity.pk]),
+            {"images": files},
+        )
+
+    def test_organizer_can_upload_multiple_photos(self):
+        self.client.force_login(self.organizer)
+        response = self.upload([tiny_image("a.png"), tiny_image("b.png")])
+        self.assertRedirects(response, self.activity.get_absolute_url())
+        self.assertEqual(self.activity.photos.count(), 2)
+
+    def test_non_organizer_cannot_upload(self):
+        self.client.force_login(self.other)
+        response = self.upload([tiny_image()])
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(self.activity.photos.count(), 0)
+
+    def test_non_image_file_is_skipped(self):
+        self.client.force_login(self.organizer)
+        fake = SimpleUploadedFile("nota.txt", b"no soy imagen", content_type="text/plain")
+        self.upload([fake])
+        self.assertEqual(self.activity.photos.count(), 0)
+
+    def test_organizer_can_delete_photo(self):
+        photo = ActivityPhoto.objects.create(
+            activity=self.activity, image=tiny_image()
+        )
+        self.client.force_login(self.organizer)
+        self.client.post(reverse("activity_photo_delete", args=[photo.pk]))
+        self.assertEqual(self.activity.photos.count(), 0)
+
+    def test_other_user_cannot_delete_photo(self):
+        photo = ActivityPhoto.objects.create(
+            activity=self.activity, image=tiny_image()
+        )
+        self.client.force_login(self.other)
+        response = self.client.post(
+            reverse("activity_photo_delete", args=[photo.pk])
+        )
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(self.activity.photos.count(), 1)
 
 
 class ActivitySearchTests(TestCase):

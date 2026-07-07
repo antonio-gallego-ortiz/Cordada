@@ -72,6 +72,45 @@
                     </div>
                 {% endif %}
 
+                {% if photos or user == activity.organizer %}
+                    <h2 class="h5 mb-2"><i class="bi bi-camera me-1"></i>Fotos de la ruta</h2>
+                    {% if photos %}
+                        <div class="row row-cols-2 row-cols-md-3 g-2 mb-3">
+                            {% for photo in photos %}
+                                <div class="col">
+                                    <div class="position-relative">
+                                        <a href="{{ photo.image.url }}" target="_blank" rel="noopener">
+                                            <img src="{{ photo.image.url }}" alt="{{ photo.caption|default:'Foto de la ruta' }}"
+                                                 class="activity-photo">
+                                        </a>
+                                        {% if user == activity.organizer or user.is_authenticated and user.is_admin %}
+                                            <form method="post" action="{% url 'activity_photo_delete' photo.pk %}"
+                                                  class="position-absolute top-0 end-0 m-1"
+                                                  onsubmit="return confirm('¿Eliminar esta foto?');">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-sm btn-danger py-0 px-1" title="Eliminar foto">
+                                                    <i class="bi bi-x"></i>
+                                                </button>
+                                            </form>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    {% if user == activity.organizer %}
+                        <form method="post" action="{% url 'activity_photo_add' activity.pk %}"
+                              enctype="multipart/form-data" class="d-flex gap-2 align-items-center mb-4">
+                            {% csrf_token %}
+                            <input type="file" name="images" class="form-control form-control-sm"
+                                   accept="image/*" multiple required>
+                            <button type="submit" class="btn btn-sm btn-outline-success text-nowrap">
+                                <i class="bi bi-upload me-1"></i>Subir fotos
+                            </button>
+                        </form>
+                    {% endif %}
+                {% endif %}
+
                 {% if activity.gpx_file %}
                     <h2 class="h5 mb-2"><i class="bi bi-map me-1"></i>Recorrido</h2>
                     <div id="map" class="rounded-3 border mb-2" style="height: 400px;"></div>
