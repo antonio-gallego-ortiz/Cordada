@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Chat · {{ listing.title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <a href="{% url 'my_market' %}" class="text-decoration-none small">
+            <i class="bi bi-arrow-left me-1"></i>Volver a mis conversaciones
+        </a>
+
+        <div class="card shadow-sm mt-2 mb-4">
+            <div class="card-body p-3 d-flex align-items-center gap-3">
+                {% if listing.photo %}
+                    <img src="{{ listing.photo.url }}" alt="" width="56" height="56"
+                         class="rounded-3" style="object-fit: cover;">
+                {% else %}
+                    <div class="listing-photo-placeholder rounded-3" style="width: 56px; height: 56px; font-size: 1.3rem;">
+                        <i class="bi bi-image"></i>
+                    </div>
+                {% endif %}
+                <div class="flex-grow-1">
+                    <a href="{{ listing.get_absolute_url }}" class="fw-semibold text-decoration-none text-reset">
+                        {{ listing.title }}
+                    </a>
+                    <div class="small text-muted">
+                        {{ listing.price_label }} · {{ listing.get_status_display }}
+                    </div>
+                </div>
+                <div class="text-end small">
+                    <div class="text-muted">Hablas con</div>
+                    <a href="{% url 'public_profile' other_user.username %}" class="fw-semibold text-decoration-none">
+                        {{ other_user.get_full_name|default:other_user.username }}
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <div id="chat-box" class="chat-box p-3 mb-3 d-flex flex-column gap-2">
+                    <div class="text-center text-muted small py-4">Cargando mensajes…</div>
+                </div>
+                <form id="chat-form" class="d-flex gap-2">
+                    <input type="text" id="chat-input" class="form-control" maxlength="1000"
+                           placeholder="Escribe un mensaje..." autocomplete="off">
+                    <button type="submit" class="btn btn-success px-3" aria-label="Enviar mensaje">
+                        <i class="bi bi-send"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/chat.js' %}"></script>
+<script>
+    initCordadaChat({
+        messagesUrl: "{% url 'conversation_messages' conversation.pk %}",
+        sendUrl: "{% url 'conversation_send' conversation.pk %}",
+        csrfToken: "{{ csrf_token }}",
+        emptyText: "Saluda y pregunta por el artículo."
+    });
+</script>
+{% endblock %}

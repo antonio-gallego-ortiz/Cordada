@@ -31,11 +31,23 @@
                         <i class="bi bi-compass me-1"></i>Actividades
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'listing_list' %}active{% endif %}"
+                       href="{% url 'listing_list' %}">
+                        <i class="bi bi-shop me-1"></i>Mercado
+                    </a>
+                </li>
                 {% if user.is_authenticated %}
                     <li class="nav-item">
                         <a class="nav-link {% if request.resolver_match.url_name == 'my_activities' %}active{% endif %}"
                            href="{% url 'my_activities' %}">
                             <i class="bi bi-calendar-check me-1"></i>Mis actividades
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'my_market' %}active{% endif %}"
+                           href="{% url 'my_market' %}">
+                            <i class="bi bi-chat-left-text me-1"></i>Mi mercado
                         </a>
                     </li>
                 {% endif %}

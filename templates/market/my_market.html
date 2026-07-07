@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Mi mercado{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2 mb-0">Mi mercado</h1>
+    <a href="{% url 'listing_create' %}" class="btn btn-success">
+        <i class="bi bi-plus-lg me-1"></i>Publicar anuncio
+    </a>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <div class="eyebrow mb-3">Mis conversaciones</div>
+                {% if conversations %}
+                    <div class="list-group list-group-flush">
+                        {% for conversation in conversations %}
+                            <a href="{% url 'conversation_detail' conversation.pk %}"
+                               class="list-group-item conversation-row px-2 border-0 d-flex align-items-center gap-3 text-decoration-none">
+                                {% if conversation.listing.photo %}
+                                    <img src="{{ conversation.listing.photo.url }}" alt="" width="48" height="48"
+                                         class="rounded-3" style="object-fit: cover;">
+                                {% else %}
+                                    <div class="listing-photo-placeholder rounded-3"
+                                         style="width: 48px; height: 48px; font-size: 1.1rem;">
+                                        <i class="bi bi-image"></i>
+                                    </div>
+                                {% endif %}
+                                <div class="flex-grow-1">
+                                    <div class="fw-semibold text-body">{{ conversation.listing.title }}</div>
+                                    <div class="small text-muted">
+                                        {% if conversation.buyer == user %}
+                                            Con {{ conversation.listing.seller.get_full_name|default:conversation.listing.seller.username }} (vendedor)
+                                        {% else %}
+                                            Con {{ conversation.buyer.get_full_name|default:conversation.buyer.username }} (interesado)
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <span class="text-muted small">
+                                    {% if conversation.last_message_at %}{{ conversation.last_message_at|date:"j M, H:i" }}{% endif %}
+                                    <i class="bi bi-chevron-right ms-1"></i>
+                                </span>
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted small mb-0">
+                        Sin conversaciones todavía. Abre un chat desde cualquier anuncio que te interese.
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <div class="eyebrow mb-3">Mis anuncios</div>
+                {% if my_listings %}
+                    <div class="d-flex flex-column gap-3">
+                        {% for listing in my_listings %}
+                            <a href="{{ listing.get_absolute_url }}"
+                               class="d-flex align-items-center gap-3 text-decoration-none text-reset">
+                                {% if listing.photo %}
+                                    <img src="{{ listing.photo.url }}" alt="" width="48" height="48"
+                                         class="rounded-3" style="object-fit: cover;">
+                                {% else %}
+                                    <div class="listing-photo-placeholder rounded-3"
+                                         style="width: 48px; height: 48px; font-size: 1.1rem;">
+                                        <i class="bi bi-image"></i>
+                                    </div>
+                                {% endif %}
+                                <div class="flex-grow-1">
+                                    <div class="fw-semibold">{{ listing.title }}</div>
+                                    <div class="small text-muted">{{ listing.price_label }}</div>
+                                </div>
+                                {% if listing.status == "available" %}
+                                    <span class="badge badge-offer-sale">Disponible</span>
+                                {% elif listing.status == "reserved" %}
+                                    <span class="badge badge-status-reserved">Reservado</span>
+                                {% else %}
+                                    <span class="badge badge-status-closed">Cerrado</span>
+                                {% endif %}
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted small mb-0">Todavía no has publicado ningún anuncio.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

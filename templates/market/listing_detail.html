@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}{{ listing.title }}{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="card shadow-sm overflow-hidden">
+            {% if listing.photo %}
+                <img src="{{ listing.photo.url }}" alt="{{ listing.title }}" class="listing-photo-lg rounded-0">
+            {% else %}
+                <div class="listing-photo-placeholder rounded-0" style="height: 320px;">
+                    <i class="bi bi-image"></i>
+                </div>
+            {% endif %}
+            <div class="card-body p-4">
+                <h2 class="h5 mb-3">Descripción</h2>
+                <p class="mb-0">{{ listing.description|linebreaksbr }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <div class="d-flex flex-wrap gap-1 mb-2">
+                    <span class="badge badge-offer-{{ listing.offer_type }}">{{ listing.get_offer_type_display }}</span>
+                    <span class="badge badge-category">{{ listing.get_category_display }}</span>
+                    {% if listing.status == "reserved" %}
+                        <span class="badge badge-status-reserved">Reservado</span>
+                    {% elif listing.status == "closed" %}
+                        <span class="badge badge-status-closed">{{ listing.get_status_display }}</span>
+                    {% endif %}
+                </div>
+                <div class="listing-price display-6">{{ listing.price_label }}</div>
+                <h1 class="h4 mt-1 mb-2">{{ listing.title }}</h1>
+                <p class="text-muted small mb-1">
+                    <i class="bi bi-tag me-1"></i>{{ listing.get_condition_display }}
+                </p>
+                <p class="text-muted small mb-1">
+                    <i class="bi bi-geo-alt me-1"></i>{{ listing.location }}
+                </p>
+                <p class="text-muted small">
+                    <i class="bi bi-clock me-1"></i>Publicado el {{ listing.created_at|date:"j M Y" }}
+                </p>
+
+                {% if user == listing.seller %}
+                    <hr>
+                    <div class="eyebrow mb-2">Gestionar mi anuncio</div>
+                    <form method="post" action="{% url 'listing_set_status' listing.pk %}" class="d-flex gap-2 mb-3">
+                        {% csrf_token %}
+                        {% if listing.status != "available" %}
+                            <button name="status" value="available" class="btn btn-sm btn-outline-success">Disponible</button>
+                        {% endif %}
+                        {% if listing.status != "reserved" %}
+                            <button name="status" value="reserved" class="btn btn-sm btn-outline-warning">Reservado</button>
+                        {% endif %}
+                        {% if listing.status != "closed" %}
+                            <button name="status" value="closed" class="btn btn-sm btn-outline-secondary">Vendido</button>
+                        {% endif %}
+                    </form>
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'listing_edit' listing.pk %}" class="btn btn-outline-success flex-grow-1">
+                            <i class="bi bi-pencil me-1"></i>Editar
+                        </a>
+                        <a href="{% url 'listing_delete' listing.pk %}" class="btn btn-outline-danger">
+                            <i class="bi bi-trash"></i>
+                        </a>
+                    </div>
+                {% elif user.is_authenticated %}
+                    {% if conversation %}
+                        <a href="{% url 'conversation_detail' conversation.pk %}" class="btn btn-success w-100 py-2">
+                            <i class="bi bi-chat-dots me-1"></i>Abrir chat con el vendedor
+                        </a>
+                    {% elif listing.is_available %}
+                        <form method="post" action="{% url 'conversation_start' listing.pk %}" class="d-grid">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-success py-2">
+                                <i class="bi bi-chat-dots me-1"></i>Chatear con el vendedor
+                            </button>
+                        </form>
+                    {% else %}
+                        <div class="alert alert-secondary py-2 mb-0">
+                            Este artículo ya no está disponible.
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <p class="text-muted small mb-2">Inicia sesión para contactar con el vendedor.</p>
+                    <a href="{% url 'login' %}" class="btn btn-success w-100">Iniciar sesión</a>
+                {% endif %}
+
+                {% if user.is_authenticated and user.is_admin and user != listing.seller %}
+                    <hr>
+                    <div class="alert alert-warning py-2 d-flex justify-content-between align-items-center mb-0">
+                        <span><i class="bi bi-shield-exclamation me-1"></i>Moderación</span>
+                        <a href="{% url 'listing_delete' listing.pk %}" class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-trash me-1"></i>Eliminar
+                        </a>
+                    </div>
+                {% endif %}
+
+                <hr>
+                <div class="eyebrow mb-2">Vendedor</div>
+                <a href="{% url 'public_profile' listing.seller.username %}"
+                   class="d-flex align-items-center gap-2 text-decoration-none text-reset">
+                    {% if listing.seller.photo %}
+                        <img src="{{ listing.seller.photo.url }}" alt="" class="avatar-photo" width="44" height="44">
+                    {% else %}
+                        <span class="avatar-circle" style="width: 2.75rem; height: 2.75rem;">
+                            {{ listing.seller.first_name|default:listing.seller.username|slice:":1"|upper }}
+                        </span>
+                    {% endif %}
+                    <div>
+                        <div class="fw-semibold">{{ listing.seller.get_full_name|default:listing.seller.username }}</div>
+                        <div class="text-muted small">@{{ listing.seller.username }}</div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
