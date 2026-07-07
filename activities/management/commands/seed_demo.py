@@ -16,6 +16,8 @@ from django.utils import timezone
 
 from accounts.models import UserSport
 from activities.models import Activity, ActivityMessage, register_user_for_activity
+from communities.models import Community, CommunityMessage, Membership
+from feed.models import Follow, Post, PostComment, PostLike
 from market.models import Conversation, Listing, MarketMessage
 
 User = get_user_model()
@@ -236,6 +238,105 @@ LISTINGS = [
 ]
 
 
+POSTS = [
+    {
+        "author": "ana",
+        "content": (
+            "¡Por fin cayó la Espolón de la Virgen en el Chorro! 6a+ de placer, "
+            "roca impecable y cero colas a primera hora. Si alguien se anima a "
+            "repetirla este mes, que me escriba: se me ha quedado corta."
+        ),
+        "likes": ["demo", "luis", "marta"],
+        "comments": [
+            ("luis", "¡Enhorabuena! Ese espolón es una gozada."),
+            ("marta", "Algún día me llevas, ¿no? 😅"),
+        ],
+    },
+    {
+        "author": "demo",
+        "content": (
+            "Resumen del finde: Vereda de la Estrella con un grupo de 8, tiempo "
+            "perfecto y los primeros neveros a la vista. Gracias a todos los que "
+            "vinisteis, ¡repetimos en dos semanas con la ruta de los refugios!"
+        ),
+        "likes": ["ana", "marta"],
+        "comments": [
+            ("marta", "Me lo pasé genial, ¡gracias por organizar!"),
+        ],
+    },
+    {
+        "author": "luis",
+        "content": (
+            "Ojo con la loma del Veleta este fin de semana: el parte da viento "
+            "fuerte en cotas altas y la nieve está muy transformada. Si vais con "
+            "esquís, mejor por la vertiente sur y pronto."
+        ),
+        "likes": ["demo"],
+        "comments": [],
+    },
+    {
+        "author": "marta",
+        "content": (
+            "Primera ruta con crampones ayer en los Cahorros altos. Todavía me "
+            "tiemblan las piernas pero QUÉ PASADA. Gracias Ana por la paciencia "
+            "infinita. Siguiente objetivo: un tresmil en condiciones."
+        ),
+        "likes": ["ana", "demo", "luis"],
+        "comments": [
+            ("ana", "¡Lo hiciste genial! El Mulhacén te espera."),
+            ("demo", "Así se empieza. 💪"),
+        ],
+    },
+]
+
+FOLLOWS = [
+    ("marta", "ana"),
+    ("marta", "demo"),
+    ("marta", "luis"),
+    ("ana", "demo"),
+    ("demo", "ana"),
+    ("luis", "ana"),
+]
+
+COMMUNITIES = [
+    {
+        "name": "Montañeros de Granada",
+        "description": (
+            "Grupo abierto para organizar salidas por Sierra Nevada y alrededores. "
+            "Todos los niveles bienvenidos."
+        ),
+        "creator": "demo",
+        "members": ["ana", "luis", "marta"],
+        "chat": [
+            ("demo", "¡Bienvenidos al grupo! Id presentándoos por aquí."),
+            ("marta", "¡Hola! Soy Marta, empezando en esto pero con muchas ganas."),
+            ("luis", "Yo suelo subir entre semana si alguien se anima."),
+        ],
+    },
+    {
+        "name": "Escaladores de Madrid",
+        "description": (
+            "Quedadas de escalada en La Pedriza, Patones y rocódromos de la capital."
+        ),
+        "creator": "ana",
+        "members": ["marta"],
+        "chat": [
+            ("ana", "¿Alguien para Patones este sábado? Busco pareja de cordada."),
+        ],
+    },
+    {
+        "name": "Esquí de travesía peninsular",
+        "description": (
+            "Partes de nieve, tracks y compañeros de travesía por todas las "
+            "cordilleras de la península."
+        ),
+        "creator": "luis",
+        "members": ["demo"],
+        "chat": [],
+    },
+]
+
+
 def build_gpx(name, waypoints, points_per_leg=12):
     """Genera un GPX sencillo interpolando entre puntos de paso."""
     parts = [
@@ -267,10 +368,11 @@ class Command(BaseCommand):
                 username__in=[d["username"] for d in USERS]
             )}
             self.seed_listings(users)
+            self.seed_social(users)
             self.stdout.write(
                 self.style.WARNING(
                     "Los usuarios de demo ya existían; solo se han añadido "
-                    "los anuncios del mercado que faltaban."
+                    "los datos que faltaban (mercado, feed y comunidades)."
                 )
             )
             return
@@ -317,11 +419,13 @@ class Command(BaseCommand):
                 )
 
         self.seed_listings(users)
+        self.seed_social(users)
 
         self.stdout.write(
             self.style.SUCCESS(
                 f"Datos de demo creados: {len(USERS)} usuarios, "
-                f"{len(ACTIVITIES)} actividades y {len(LISTINGS)} anuncios "
+                f"{len(ACTIVITIES)} actividades, {len(LISTINGS)} anuncios, "
+                f"{len(POSTS)} publicaciones y {len(COMMUNITIES)} comunidades "
                 f"(contraseña: {PASSWORD})."
             )
         )
@@ -358,3 +462,39 @@ class Command(BaseCommand):
             sender=users["demo"],
             content="Hola Marta, sí. Por 90 € te las llevo yo a la próxima quedada.",
         )
+
+    def seed_social(self, users):
+        """Crea publicaciones, seguimientos y comunidades de ejemplo."""
+        if Post.objects.exists() or Community.objects.exists():
+            return
+        for data in POSTS:
+            post = Post.objects.create(
+                author=users[data["author"]], content=data["content"]
+            )
+            for username in data["likes"]:
+                PostLike.objects.create(post=post, user=users[username])
+            for username, content in data["comments"]:
+                PostComment.objects.create(
+                    post=post, author=users[username], content=content
+                )
+
+        for follower, followed in FOLLOWS:
+            Follow.objects.create(
+                follower=users[follower], followed=users[followed]
+            )
+
+        for data in COMMUNITIES:
+            community = Community.objects.create(
+                name=data["name"],
+                description=data["description"],
+                created_by=users[data["creator"]],
+            )
+            Membership.objects.create(
+                community=community, user=users[data["creator"]]
+            )
+            for username in data["members"]:
+                Membership.objects.create(community=community, user=users[username])
+            for username, content in data["chat"]:
+                CommunityMessage.objects.create(
+                    community=community, sender=users[username], content=content
+                )

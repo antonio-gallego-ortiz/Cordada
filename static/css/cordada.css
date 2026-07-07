@@ -67,6 +67,7 @@ h1, h2, h3, h4, h5, h6 { font-weight: 700; }
 .navbar-cordada {
     background-color: #ffffff;
     border-bottom: 1px solid var(--cordada-border);
+    box-shadow: 0 1px 12px rgba(15, 23, 42, 0.06);
 }
 
 .navbar-cordada .navbar-brand {
@@ -75,16 +76,39 @@ h1, h2, h3, h4, h5, h6 { font-weight: 700; }
     letter-spacing: -0.02em;
 }
 
+.navbar-cordada .navbar-brand:hover { color: var(--cordada-primary-dark); }
+
 .navbar-cordada .nav-link {
-    color: #374151;
+    color: #4b5563;
     font-weight: 500;
-    border-radius: 0.5rem;
-    padding-left: 0.85rem;
-    padding-right: 0.85rem;
+    border-radius: 999px;
+    padding: 0.4rem 0.95rem;
+    transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 .navbar-cordada .nav-link:hover { background-color: #f3f4f6; color: var(--cordada-ink); }
-.navbar-cordada .nav-link.active { color: var(--cordada-primary); font-weight: 600; }
+
+.navbar-cordada .nav-link.active {
+    color: var(--cordada-primary-dark);
+    font-weight: 600;
+    background-color: var(--cordada-primary-soft);
+}
+
+.navbar-cordada .dropdown-toggle::after { color: #9ca3af; }
+
+.navbar-cordada .dropdown-menu {
+    border-radius: 0.75rem;
+    padding: 0.4rem;
+    min-width: 12rem;
+}
+
+.navbar-cordada .dropdown-item {
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    font-weight: 500;
+}
+
+.navbar-cordada .dropdown-item:hover { background-color: #f3f4f6; }
 
 /* ---------- Hero de portada ---------- */
 .hero-cordada {
@@ -256,6 +280,24 @@ h1, h2, h3, h4, h5, h6 { font-weight: 700; }
 
 .conversation-row { transition: background-color 0.15s ease; }
 .conversation-row:hover { background-color: #f8fafc; }
+
+/* ---------- Feed social ---------- */
+.post-image {
+    width: 100%;
+    max-height: 480px;
+    object-fit: cover;
+    border-radius: 0.75rem;
+    border: 1px solid var(--cordada-border);
+}
+
+.like-button { color: var(--cordada-muted); }
+.like-button.liked, .like-button.liked i { color: #dc2626; }
+
+.nav-pills .nav-link { color: #374151; font-weight: 500; border-radius: 999px; }
+.nav-pills .nav-link.active {
+    background-color: var(--cordada-primary);
+    color: #ffffff;
+}
 
 /* ---------- Pie de página ---------- */
 .footer-cordada {

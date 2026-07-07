@@ -8,6 +8,10 @@ Trabajo de Fin de Grado — Ingeniería Informática.
 
 Una plataforma sencilla y gratuita donde cualquier aficionado a la montaña puede:
 
+- Compartir sus experiencias en el feed social: publicaciones con foto,
+  me gusta, comentarios y seguimiento entre usuarios.
+- Unirse a comunidades (Escaladores de Madrid, Montañeros de Granada...)
+  con chat de grupo.
 - Crear un perfil con sus deportes y nivel (senderismo, alpinismo, esquí, escalada...).
 - Publicar actividades (rutas, ascensiones, travesías...) con datos técnicos
   (distancia, desnivel, duración) y el material necesario.
@@ -57,8 +61,9 @@ La aplicación quedará disponible en `http://127.0.0.1:8000/`.
 
 Los datos de ejemplo crean 4 usuarios (`demo`, `ana`, `luis`, `marta`,
 contraseña `demo-cordada-2026`), 5 actividades con track GPX,
-inscripciones y conversaciones de chat, y 5 anuncios en el mercado
-de material.
+inscripciones y chats, 5 anuncios en el mercado, publicaciones en el
+feed con me gusta y comentarios, seguimientos entre usuarios y
+3 comunidades con conversaciones de grupo.
 
 ## Tests
 
@@ -70,7 +75,9 @@ python manage.py test
 
 - `cordada/` — configuración del proyecto Django.
 - `accounts/` — gestión de usuarios: registro, perfil, autenticación.
+- `feed/` — feed social: publicaciones, me gusta, comentarios y seguimiento.
 - `activities/` — actividades, inscripciones, tracks GPX y chat de actividad.
 - `market/` — mercado de material de segunda mano con chat comprador-vendedor.
+- `communities/` — comunidades y grupos con chat.
 - `templates/` — plantillas HTML compartidas.
 - `static/` — hoja de estilos y JavaScript propios.

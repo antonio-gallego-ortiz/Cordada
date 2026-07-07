@@ -17,7 +17,7 @@
 
 <nav class="navbar navbar-expand-lg navbar-cordada sticky-top py-2">
     <div class="container">
-        <a class="navbar-brand fs-4" href="/">
+        <a class="navbar-brand fs-4" href="{% url 'feed' %}">
             <i class="bi bi-triangle-fill me-1"></i>Cordada
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar"
@@ -25,9 +25,16 @@
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="mainNavbar">
-            <ul class="navbar-nav me-auto ms-lg-3">
+            <ul class="navbar-nav me-auto ms-lg-4 gap-lg-1">
                 <li class="nav-item">
-                    <a class="nav-link {% if request.resolver_match.url_name == 'activity_list' %}active{% endif %}" href="/">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'feed' %}active{% endif %}"
+                       href="{% url 'feed' %}">
+                        <i class="bi bi-house-door me-1"></i>Inicio
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'activity_list' %}active{% endif %}"
+                       href="{% url 'activity_list' %}">
                         <i class="bi bi-compass me-1"></i>Actividades
                     </a>
                 </li>
@@ -37,40 +44,59 @@
                         <i class="bi bi-shop me-1"></i>Mercado
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'community_list' %}active{% endif %}"
+                       href="{% url 'community_list' %}">
+                        <i class="bi bi-people me-1"></i>Comunidades
+                    </a>
+                </li>
                 {% if user.is_authenticated %}
                     <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'my_activities' %}active{% endif %}"
-                           href="{% url 'my_activities' %}">
-                            <i class="bi bi-calendar-check me-1"></i>Mis actividades
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'my_market' %}active{% endif %}"
-                           href="{% url 'my_market' %}">
-                            <i class="bi bi-chat-left-text me-1"></i>Mi mercado
+                        <a class="nav-link {% if request.resolver_match.url_name == 'my_conversations' %}active{% endif %}"
+                           href="{% url 'my_conversations' %}">
+                            <i class="bi bi-chat-left-text me-1"></i>Conversaciones
                         </a>
                     </li>
                 {% endif %}
             </ul>
             <ul class="navbar-nav align-items-lg-center">
                 {% if user.is_authenticated %}
-                    <li class="nav-item me-lg-2">
-                        <a class="nav-link d-flex align-items-center gap-2" href="{% url 'profile' %}">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link d-flex align-items-center gap-2 dropdown-toggle" href="#"
+                           role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             {% if user.photo %}
                                 <img src="{{ user.photo.url }}" alt="" class="avatar-photo" width="36" height="36">
                             {% else %}
                                 <span class="avatar-circle">{{ user.first_name|default:user.username|slice:":1"|upper }}</span>
                             {% endif %}
-                            <span>{{ user.first_name|default:user.username }}</span>
+                            <span class="fw-semibold">{{ user.first_name|default:user.username }}</span>
                         </a>
-                    </li>
-                    <li class="nav-item">
-                        <form method="post" action="{% url 'logout' %}" class="d-inline">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-link nav-link" title="Cerrar sesión">
-                                <i class="bi bi-box-arrow-right me-1"></i>Salir
-                            </button>
-                        </form>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2">
+                            <li>
+                                <a class="dropdown-item" href="{% url 'profile' %}">
+                                    <i class="bi bi-person-circle me-2 text-muted"></i>Mi perfil
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'my_activities' %}">
+                                    <i class="bi bi-calendar-check me-2 text-muted"></i>Mis actividades
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'my_listings' %}">
+                                    <i class="bi bi-box-seam me-2 text-muted"></i>Mis anuncios
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form method="post" action="{% url 'logout' %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="dropdown-item">
+                                        <i class="bi bi-box-arrow-right me-2 text-muted"></i>Cerrar sesión
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
                     </li>
                 {% else %}
                     <li class="nav-item me-lg-2">
