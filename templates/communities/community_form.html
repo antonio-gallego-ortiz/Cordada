@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Crear comunidad{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <h1 class="h3 mb-4 text-center">Crear una comunidad</h1>
+        <div class="card shadow-sm">
+            <div class="card-body p-4 p-md-5">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    {% include "includes/form_fields.html" %}
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success flex-grow-1 py-2">Crear comunidad</button>
+                        <a href="{% url 'community_list' %}" class="btn btn-outline-secondary">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
