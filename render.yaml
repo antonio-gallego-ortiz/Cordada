@@ -9,7 +9,10 @@ services:
     plan: free
     buildCommand: "./build.sh"
     startCommand: "gunicorn cordada.wsgi:application"
+    healthCheckPath: /salud/
     envVars:
+      - key: PYTHON_VERSION
+        value: "3.13.4"
       - key: SECRET_KEY
         generateValue: true
       - key: DEBUG

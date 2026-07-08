@@ -90,6 +90,19 @@ class PostTests(TestCase):
         self.assertFalse(PostComment.objects.filter(pk=comment.pk).exists())
 
 
+class FeedPaginationTests(TestCase):
+    """Paginación del feed."""
+
+    def test_feed_paginates_posts(self):
+        author = create_user("autora")
+        for index in range(15):
+            Post.objects.create(author=author, content=f"Publicación {index}")
+        response = self.client.get(reverse("feed"))
+        self.assertEqual(len(response.context["posts"]), 10)
+        response = self.client.get(f"{reverse('feed')}?page=2")
+        self.assertEqual(len(response.context["posts"]), 5)
+
+
 class FollowTests(TestCase):
     """Seguimiento entre usuarios."""
 

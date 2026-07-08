@@ -6,6 +6,8 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
+from cordada.pagination import paginate
+
 from .forms import PostForm
 from .models import Follow, Post, PostComment, PostLike
 
@@ -21,7 +23,8 @@ def feed(request):
     if following_only and request.user.is_authenticated:
         followed_ids = request.user.following.values_list("followed_id", flat=True)
         posts = posts.filter(author_id__in=followed_ids)
-    posts = list(posts)
+    page_obj, querystring = paginate(request, posts, per_page=10)
+    posts = list(page_obj.object_list)
     if request.user.is_authenticated:
         liked_ids = set(
             PostLike.objects.filter(
@@ -34,7 +37,13 @@ def feed(request):
     return render(
         request,
         "feed/feed.html",
-        {"posts": posts, "form": form, "following_only": following_only},
+        {
+            "posts": posts,
+            "page_obj": page_obj,
+            "querystring": querystring,
+            "form": form,
+            "following_only": following_only,
+        },
     )
 
 

@@ -7,20 +7,30 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
 
+from cordada.pagination import paginate
+
 from .forms import ListingForm, ListingSearchForm
 from .models import Conversation, Listing, MarketMessage
 
 
 def listing_list(request):
-    """Escaparate del mercado con búsqueda y filtros."""
+    """Escaparate del mercado con búsqueda, filtros y paginación."""
     form = ListingSearchForm(request.GET)
     listings = Listing.objects.filter(status=Listing.Status.AVAILABLE).select_related(
         "seller"
     )
     if form.is_valid():
         listings = form.filter_queryset(listings)
+    page_obj, querystring = paginate(request, listings, per_page=12)
     return render(
-        request, "market/listing_list.html", {"listings": listings, "form": form}
+        request,
+        "market/listing_list.html",
+        {
+            "listings": page_obj.object_list,
+            "page_obj": page_obj,
+            "querystring": querystring,
+            "form": form,
+        },
     )
 
 

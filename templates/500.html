@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Error del servidor · Cordada</title>
+    <style>
+        /* Página autónoma: si algo falla de verdad, no depende de nada más. */
+        body {
+            font-family: "Inter", system-ui, sans-serif;
+            background: #f4f6f5;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .box { text-align: center; padding: 2rem; max-width: 26rem; }
+        .icon {
+            width: 4.5rem; height: 4.5rem; border-radius: 50%;
+            background: #fee2e2; color: #991b1b;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 2rem; margin-bottom: 1rem;
+        }
+        h1 { font-size: 1.4rem; margin: 0 0 0.5rem; }
+        p { color: #64748b; }
+        a {
+            display: inline-block; margin-top: 1rem; padding: 0.6rem 1.5rem;
+            background: linear-gradient(135deg, #047857, #10b981);
+            color: #fff; text-decoration: none; border-radius: 0.75rem; font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <div class="icon">⚠</div>
+        <h1>Algo ha ido mal en la montaña</h1>
+        <p>Ha ocurrido un error inesperado (500). Ya estamos en ello; inténtalo de nuevo en unos minutos.</p>
+        <a href="/">Volver al inicio</a>
+    </div>
+</body>
+</html>

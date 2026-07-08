@@ -6,6 +6,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
 
+from cordada.pagination import paginate
+
 from .forms import ActivityForm, ActivitySearchForm
 from .models import (
     Activity,
@@ -17,17 +19,23 @@ from .models import (
 
 
 def activity_list(request):
-    """Listado de actividades con búsqueda y filtros (RF-09)."""
+    """Listado de actividades con búsqueda, filtros y paginación (RF-09)."""
     form = ActivitySearchForm(request.GET)
     activities = Activity.objects.select_related("organizer")
     if form.is_valid():
         activities = form.filter_queryset(activities)
     else:
         activities = activities.filter(date__gte=timezone.now())
+    page_obj, querystring = paginate(request, activities, per_page=12)
     return render(
         request,
         "activities/activity_list.html",
-        {"activities": activities, "form": form},
+        {
+            "activities": page_obj.object_list,
+            "page_obj": page_obj,
+            "querystring": querystring,
+            "form": form,
+        },
     )
 
 

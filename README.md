@@ -90,6 +90,21 @@ Variables de entorno usadas en producción:
 | `DEBUG` | `False` en producción |
 | `DATABASE_URL` | Conexión a PostgreSQL (la inyecta Render desde la base de datos) |
 | `ALLOWED_HOSTS` | Dominios extra separados por comas (opcional; el dominio de Render se añade solo) |
+| `EMAIL_BACKEND`, `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, `EMAIL_USE_TLS`, `DEFAULT_FROM_EMAIL` | SMTP para los correos de recuperación de contraseña (por defecto, backend de consola) |
+| `LOG_LEVEL` | Nivel de log (`INFO` por defecto) |
+
+## Preparado para producción
+
+- Recuperación de contraseña por email y cambio de contraseña desde el perfil.
+- Páginas de error personalizadas (404, 403, 500) y endpoint de salud en `/salud/`.
+- Paginación en el feed, las actividades y el mercado.
+- Política de privacidad y términos de uso, con consentimiento en el registro (RGPD).
+- Integración continua: los tests se ejecutan en GitHub Actions en cada push.
+- Logging a consola configurable y favicon/robots.txt.
+
+Futuras mejoras documentadas y fuera de alcance: limitación de intentos de
+inicio de sesión (django-axes), monitorización de errores (Sentry) y
+almacenamiento externo para los archivos subidos (S3/Cloudinary).
 
 Para crear el usuario administrador en producción, desde la pestaña *Shell*
 del servicio: `python manage.py createsuperuser`.
