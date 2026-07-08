@@ -111,9 +111,31 @@
                     {% endif %}
                 {% endif %}
 
+                {% if activity.latitude and activity.longitude and not activity.is_past %}
+                    <h2 class="h5 mb-2"><i class="ti ti-cloud me-1"></i>Meteorología en la zona</h2>
+                    <div id="weather-box" class="weather-card mb-4">
+                        <div class="text-muted small">Cargando el parte meteorológico…</div>
+                    </div>
+                {% endif %}
+
                 {% if activity.gpx_file %}
-                    <h2 class="h5 mb-2"><i class="ti ti-route me-1"></i>Recorrido</h2>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h2 class="h5 mb-0"><i class="ti ti-route me-1"></i>Recorrido</h2>
+                        <div class="btn-group btn-group-sm" role="group" aria-label="Modo del mapa">
+                            <button type="button" id="btn-map-2d" class="btn btn-outline-success active">
+                                <i class="ti ti-map-2 me-1"></i>Mapa
+                            </button>
+                            <button type="button" id="btn-map-3d" class="btn btn-outline-success">
+                                <i class="ti ti-cube me-1"></i>3D
+                            </button>
+                        </div>
+                    </div>
                     <div id="map" class="rounded-3 border mb-2" style="height: 400px;"></div>
+                    <div id="map-3d" class="rounded-3 border mb-2 d-none" style="height: 400px;"></div>
+                    <p class="text-muted mb-2" style="font-size: 0.78rem;">
+                        En el modo Mapa puedes cambiar entre las capas estándar, topográfica,
+                        satélite, relieve y ciclista con el control de la esquina superior derecha.
+                    </p>
                     <a href="{{ activity.gpx_file.url }}" class="btn btn-sm btn-outline-secondary" download>
                         <i class="ti ti-download me-1"></i>Descargar track GPX
                     </a>
@@ -254,26 +276,24 @@
 {% endblock %}
 
 {% block extra_js %}
+{% load static %}
 {% if activity.gpx_file %}
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/leaflet-gpx@1.7.0/gpx.min.js"></script>
+    <script src="{% static 'js/track-map.js' %}"></script>
     <script>
-        const map = L.map("map");
-        L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-            maxZoom: 17,
-            attribution: "&copy; OpenStreetMap contributors"
-        }).addTo(map);
+        initCordadaTrackMap({gpxUrl: "{{ activity.gpx_file.url }}"});
+    </script>
+{% endif %}
 
-        new L.GPX("{{ activity.gpx_file.url }}", {
-            async: true,
-            marker_options: {
-                startIconUrl: null,
-                endIconUrl: null,
-                shadowUrl: null
-            }
-        }).on("loaded", function (event) {
-            map.fitBounds(event.target.getBounds());
-        }).addTo(map);
+{% if activity.latitude and activity.longitude and not activity.is_past %}
+    <script src="{% static 'js/weather.js' %}"></script>
+    <script>
+        initCordadaWeather({
+            lat: {{ activity.latitude|stringformat:"f" }},
+            lon: {{ activity.longitude|stringformat:"f" }},
+            activityDate: "{{ activity.date|date:'Y-m-d' }}"
+        });
     </script>
 {% endif %}
 
