@@ -7,7 +7,7 @@
 <div class="row justify-content-center">
     <div class="col-lg-8">
         <a href="{% url 'my_conversations' %}" class="text-decoration-none small">
-            <i class="bi bi-arrow-left me-1"></i>Volver a conversaciones
+            <i class="ti ti-arrow-left me-1"></i>Volver a conversaciones
         </a>
 
         <div class="card shadow-sm mt-2 mb-4">
@@ -17,7 +17,7 @@
                          class="rounded-3" style="object-fit: cover;">
                 {% else %}
                     <div class="listing-photo-placeholder rounded-3" style="width: 56px; height: 56px; font-size: 1.3rem;">
-                        <i class="bi bi-image"></i>
+                        <i class="ti ti-photo"></i>
                     </div>
                 {% endif %}
                 <div class="flex-grow-1">
@@ -46,7 +46,7 @@
                     <input type="text" id="chat-input" class="form-control" maxlength="1000"
                            placeholder="Escribe un mensaje..." autocomplete="off">
                     <button type="submit" class="btn btn-success px-3" aria-label="Enviar mensaje">
-                        <i class="bi bi-send"></i>
+                        <i class="ti ti-send-2"></i>
                     </button>
                 </form>
             </div>

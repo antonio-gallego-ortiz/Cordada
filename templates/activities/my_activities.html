@@ -14,8 +14,8 @@
                     <div>
                         <strong>{{ activity.title }}</strong>
                         <span class="text-muted small d-block">
-                            <i class="bi bi-calendar-event"></i> {{ activity.date|date:"j M Y, H:i" }}
-                            · <i class="bi bi-geo-alt"></i> {{ activity.location }}
+                            <i class="ti ti-calendar"></i> {{ activity.date|date:"j M Y, H:i" }}
+                            · <i class="ti ti-map-pin"></i> {{ activity.location }}
                         </span>
                     </div>
                     {% include "activities/includes/difficulty_badge.html" %}
@@ -36,8 +36,8 @@
                     <div>
                         <strong>{{ activity.title }}</strong>
                         <span class="text-muted small d-block">
-                            <i class="bi bi-calendar-event"></i> {{ activity.date|date:"j M Y, H:i" }}
-                            · <i class="bi bi-people"></i> {{ activity.participants_count }}/{{ activity.max_participants }} inscritos
+                            <i class="ti ti-calendar"></i> {{ activity.date|date:"j M Y, H:i" }}
+                            · <i class="ti ti-users"></i> {{ activity.participants_count }}/{{ activity.max_participants }} inscritos
                         </span>
                     </div>
                     {% include "activities/includes/difficulty_badge.html" %}

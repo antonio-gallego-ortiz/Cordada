@@ -14,11 +14,11 @@
         <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
             {% if user.is_authenticated %}
                 <a href="{% url 'activity_create' %}" class="btn btn-light fw-semibold px-4">
-                    <i class="bi bi-plus-lg me-1"></i>Organizar actividad
+                    <i class="ti ti-plus me-1"></i>Organizar actividad
                 </a>
             {% else %}
                 <a href="{% url 'register' %}" class="btn btn-light fw-semibold px-4">
-                    <i class="bi bi-person-plus me-1"></i>Únete a la comunidad
+                    <i class="ti ti-user-plus me-1"></i>Únete a la comunidad
                 </a>
             {% endif %}
         </div>
@@ -31,7 +31,7 @@
             <div class="col-12 col-md-4">
                 <label for="{{ form.q.id_for_label }}" class="eyebrow d-block mb-1">{{ form.q.label }}</label>
                 <div class="input-icon-group">
-                    <i class="bi bi-search"></i>
+                    <i class="ti ti-search"></i>
                     {{ form.q }}
                 </div>
             </div>
@@ -49,7 +49,7 @@
             </div>
             <div class="col-6 col-md-2 d-grid">
                 <button type="submit" class="btn btn-success">
-                    <i class="bi bi-search me-1"></i>Buscar
+                    <i class="ti ti-search me-1"></i>Buscar
                 </button>
             </div>
             <div class="col-12">
@@ -80,15 +80,15 @@
                             </a>
                         </h2>
                         <p class="text-muted small mb-3">
-                            <i class="bi bi-geo-alt me-1"></i>{{ activity.location }}
+                            <i class="ti ti-map-pin me-1"></i>{{ activity.location }}
                         </p>
                         <p class="card-text flex-grow-1">{{ activity.description|truncatewords:18 }}</p>
                         <div class="d-flex justify-content-between align-items-center small text-muted mb-2 mt-2">
                             <span>
-                                <i class="bi bi-people me-1"></i>{{ activity.participants_count }}/{{ activity.max_participants }} plazas
+                                <i class="ti ti-users me-1"></i>{{ activity.participants_count }}/{{ activity.max_participants }} plazas
                             </span>
                             {% if activity.gpx_file %}
-                                <span title="Incluye track GPX"><i class="bi bi-map me-1"></i>Track</span>
+                                <span title="Incluye track GPX"><i class="ti ti-route me-1"></i>Track</span>
                             {% endif %}
                         </div>
                         <div class="places-bar mb-3">
@@ -114,13 +114,13 @@
     <div class="card border-2" style="border-style: dashed;">
         <div class="card-body p-5 text-center">
             <div class="avatar-circle avatar-circle-lg mx-auto mb-3" style="background-color: #f1f5f9; color: #94a3b8;">
-                <i class="bi bi-binoculars"></i>
+                <i class="ti ti-telescope"></i>
             </div>
             <h2 class="h5">No se han encontrado actividades</h2>
             {% if user.is_authenticated %}
                 <p class="text-muted mb-4">Prueba con otros filtros… ¡o anímate a organizar una!</p>
                 <a href="{% url 'activity_create' %}" class="btn btn-success px-4">
-                    <i class="bi bi-plus-lg me-1"></i>Organizar actividad
+                    <i class="ti ti-plus me-1"></i>Organizar actividad
                 </a>
             {% else %}
                 <p class="text-muted mb-4">Regístrate para organizar la primera.</p>

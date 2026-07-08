@@ -3,6 +3,6 @@ Pillow~=11.0
 
 # Producción
 gunicorn~=23.0
-whitenoise~=6.8
-dj-database-url~=2.3
+whitenoise~=6.8.0
+dj-database-url~=2.3.0
 psycopg[binary]~=3.2

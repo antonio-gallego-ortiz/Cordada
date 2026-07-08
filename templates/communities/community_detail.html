@@ -10,7 +10,7 @@
             <div class="card-body p-4">
                 <div class="d-flex align-items-center gap-3 mb-2">
                     <span class="avatar-circle" style="width: 3.25rem; height: 3.25rem; font-size: 1.3rem;">
-                        <i class="bi bi-people-fill"></i>
+                        <i class="ti ti-users-group"></i>
                     </span>
                     <div class="flex-grow-1">
                         <h1 class="h4 mb-0">{{ community.name }}</h1>
@@ -29,7 +29,7 @@
                             <form method="post" action="{% url 'community_join' community.pk %}">
                                 {% csrf_token %}
                                 <button type="submit" class="btn btn-success">
-                                    <i class="bi bi-plus-lg me-1"></i>Unirme
+                                    <i class="ti ti-plus me-1"></i>Unirme
                                 </button>
                             </form>
                         {% endif %}
@@ -40,7 +40,7 @@
                 {% if user.is_authenticated and user == community.created_by or user.is_authenticated and user.is_admin %}
                     <div class="text-end mt-2">
                         <a href="{% url 'community_delete' community.pk %}" class="btn btn-sm btn-link text-danger">
-                            <i class="bi bi-trash me-1"></i>Eliminar comunidad
+                            <i class="ti ti-trash me-1"></i>Eliminar comunidad
                         </a>
                     </div>
                 {% endif %}
@@ -49,7 +49,7 @@
 
         <div class="card shadow-sm mt-4">
             <div class="card-body p-4">
-                <h2 class="h5 mb-1"><i class="bi bi-chat-dots me-1"></i>Chat del grupo</h2>
+                <h2 class="h5 mb-1"><i class="ti ti-message-circle me-1"></i>Chat del grupo</h2>
                 {% if user_is_member %}
                     <p class="text-muted small mb-3">Solo los miembros pueden leer y escribir.</p>
                     <div id="chat-box" class="chat-box p-3 mb-3 d-flex flex-column gap-2">
@@ -59,12 +59,12 @@
                         <input type="text" id="chat-input" class="form-control" maxlength="1000"
                                placeholder="Escribe al grupo..." autocomplete="off">
                         <button type="submit" class="btn btn-success px-3" aria-label="Enviar mensaje">
-                            <i class="bi bi-send"></i>
+                            <i class="ti ti-send-2"></i>
                         </button>
                     </form>
                 {% elif user.is_authenticated %}
                     <div class="chat-box p-4 text-center text-muted small">
-                        <i class="bi bi-lock d-block mb-2" style="font-size: 1.5rem;"></i>
+                        <i class="ti ti-lock d-block mb-2" style="font-size: 1.5rem;"></i>
                         Únete a la comunidad para participar en el chat.
                     </div>
                 {% else %}
