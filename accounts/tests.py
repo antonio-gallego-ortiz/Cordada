@@ -18,9 +18,18 @@ class AccountTests(TestCase):
             "email": "maria@example.com",
             "password1": "montana-segura-99",
             "password2": "montana-segura-99",
+            "accept_privacy": "on",
         }
         data.update(overrides)
         return data
+
+    def test_register_requires_privacy_consent(self):
+        data = self.register_data()
+        del data["accept_privacy"]
+        response = self.client.post(reverse("register"), data)
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(User.objects.filter(username="montanera").exists())
+        self.assertContains(response, "política de privacidad")
 
     def test_register_creates_user_and_logs_in(self):
         response = self.client.post(reverse("register"), self.register_data())
@@ -79,6 +88,50 @@ class AccountTests(TestCase):
         User.objects.create_user("ana", "ana@example.com", "montana-segura-99")
         response = self.client.get(reverse("public_profile", args=["ana"]))
         self.assertEqual(response.status_code, 200)
+
+
+class PasswordFlowTests(TestCase):
+    """Recuperación y cambio de contraseña."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            "ana", "ana@example.com", "montana-segura-99"
+        )
+
+    def test_password_reset_sends_email_with_valid_link(self):
+        from django.core import mail
+
+        response = self.client.post(
+            reverse("password_reset"), {"email": "ana@example.com"}
+        )
+        self.assertRedirects(response, reverse("password_reset_done"))
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn("Restablecer", mail.outbox[0].subject)
+        self.assertIn("/cuenta/contrasena/restablecer/", mail.outbox[0].body)
+
+    def test_unknown_email_does_not_reveal_accounts(self):
+        from django.core import mail
+
+        response = self.client.post(
+            reverse("password_reset"), {"email": "nadie@example.com"}
+        )
+        # Misma respuesta que con un email válido: no se filtra si existe.
+        self.assertRedirects(response, reverse("password_reset_done"))
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_logged_user_can_change_password(self):
+        self.client.force_login(self.user)
+        response = self.client.post(
+            reverse("password_change"),
+            {
+                "old_password": "montana-segura-99",
+                "new_password1": "otra-clave-segura-42",
+                "new_password2": "otra-clave-segura-42",
+            },
+        )
+        self.assertRedirects(response, reverse("password_change_done"))
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password("otra-clave-segura-42"))
 
 
 class UserSportTests(TestCase):

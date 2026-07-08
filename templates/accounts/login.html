@@ -45,9 +45,10 @@
                         Iniciar sesión <i class="ti ti-login-2 ms-1"></i>
                     </button>
                 </form>
-                <p class="text-center mt-4 mb-0 small text-muted">
-                    ¿No tienes cuenta? <a href="{% url 'register' %}" class="fw-semibold">Crear cuenta</a>
-                </p>
+                <div class="d-flex justify-content-between mt-4 small">
+                    <a href="{% url 'password_reset' %}" class="text-muted">¿Has olvidado tu contraseña?</a>
+                    <a href="{% url 'register' %}" class="fw-semibold">Crear cuenta</a>
+                </div>
             </div>
         </div>
     </div>

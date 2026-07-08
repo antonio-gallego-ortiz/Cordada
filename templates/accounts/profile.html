@@ -6,9 +6,12 @@
 <div class="row justify-content-center">
     <div class="col-md-8 col-lg-6">
         {% include "accounts/includes/profile_card.html" %}
-        <div class="d-flex justify-content-center gap-2 mt-4">
+        <div class="d-flex justify-content-center flex-wrap gap-2 mt-4">
             <a href="{% url 'profile_edit' %}" class="btn btn-success px-4">
                 <i class="ti ti-pencil me-1"></i>Editar perfil
+            </a>
+            <a href="{% url 'password_change' %}" class="btn btn-outline-success">
+                <i class="ti ti-key me-1"></i>Cambiar contraseña
             </a>
             <a href="{% url 'account_delete' %}" class="btn btn-outline-danger">
                 <i class="ti ti-trash me-1"></i>Darme de baja
