@@ -2,10 +2,28 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
+from django.views.generic import TemplateView
 from django.views.static import serve
+
+from . import views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("salud/", views.health, name="health"),
+    path(
+        "robots.txt",
+        TemplateView.as_view(template_name="robots.txt", content_type="text/plain"),
+    ),
+    path(
+        "privacidad/",
+        TemplateView.as_view(template_name="legal/privacy.html"),
+        name="privacy",
+    ),
+    path(
+        "terminos/",
+        TemplateView.as_view(template_name="legal/terms.html"),
+        name="terms",
+    ),
     path("cuenta/", include("accounts.urls")),
     path("mercado/", include("market.urls")),
     path("comunidades/", include("communities.urls")),

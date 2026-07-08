@@ -1,5 +1,12 @@
 from django import forms
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.contrib.auth.forms import (
+    AuthenticationForm,
+    PasswordChangeForm,
+    PasswordResetForm,
+    SetPasswordForm,
+    UserCreationForm,
+)
+from django.utils.safestring import mark_safe
 
 from .models import User, UserSport
 
@@ -20,6 +27,17 @@ class BootstrapFormMixin:
 
 
 class RegisterForm(BootstrapFormMixin, UserCreationForm):
+    accept_privacy = forms.BooleanField(
+        label=mark_safe(
+            'He leído y acepto la <a href="/privacidad/" target="_blank">'
+            "política de privacidad</a>"
+        ),
+        required=True,
+        error_messages={
+            "required": "Debes aceptar la política de privacidad para registrarte."
+        },
+    )
+
     class Meta:
         model = User
         fields = ["username", "first_name", "last_name", "email"]
@@ -37,6 +55,18 @@ class RegisterForm(BootstrapFormMixin, UserCreationForm):
 
 
 class LoginForm(BootstrapFormMixin, AuthenticationForm):
+    pass
+
+
+class BootstrapPasswordResetForm(BootstrapFormMixin, PasswordResetForm):
+    pass
+
+
+class BootstrapSetPasswordForm(BootstrapFormMixin, SetPasswordForm):
+    pass
+
+
+class BootstrapPasswordChangeForm(BootstrapFormMixin, PasswordChangeForm):
     pass
 
 

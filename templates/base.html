@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}Cordada{% endblock %} · Cordada</title>
+    <meta name="description" content="{% block meta_description %}Cordada, la comunidad de montaña: organiza actividades, comparte tus rutas, únete a grupos y da una segunda vida a tu material.{% endblock %}">
+    <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
@@ -128,7 +130,11 @@
     <div class="container d-flex flex-column flex-md-row justify-content-between align-items-center gap-2">
         <span class="fw-bold text-cordada"><i class="ti ti-mountain me-1"></i>Cordada</span>
         <span class="text-muted small">Comunidad de montaña · Trabajo de Fin de Grado</span>
-        <span class="text-muted small"><i class="ti ti-route"></i> Mapas © OpenStreetMap</span>
+        <span class="small">
+            <a href="{% url 'privacy' %}" class="text-muted text-decoration-none me-3">Privacidad</a>
+            <a href="{% url 'terms' %}" class="text-muted text-decoration-none me-3">Términos</a>
+            <span class="text-muted">Mapas © OpenStreetMap</span>
+        </span>
     </div>
 </footer>
 
