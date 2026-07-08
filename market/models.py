@@ -1,7 +1,9 @@
 from django.conf import settings
-from django.core.validators import MinValueValidator
+from django.core.validators import MaxLengthValidator, MinValueValidator
 from django.db import models
 from django.urls import reverse
+
+from cordada.validators import validate_upload_size
 
 
 class Listing(models.Model):
@@ -40,7 +42,9 @@ class Listing(models.Model):
         verbose_name="vendedor",
     )
     title = models.CharField("título", max_length=120)
-    description = models.TextField("descripción")
+    description = models.TextField(
+        "descripción", validators=[MaxLengthValidator(5000)]
+    )
     category = models.CharField("categoría", max_length=20, choices=Category.choices)
     condition = models.CharField(
         "estado del artículo", max_length=20, choices=Condition.choices
@@ -61,7 +65,11 @@ class Listing(models.Model):
         help_text="En alquileres, precio por día. En préstamos se deja vacío.",
     )
     photo = models.ImageField(
-        "fotografía", upload_to="listings/", blank=True, null=True
+        "fotografía",
+        upload_to="listings/",
+        blank=True,
+        null=True,
+        validators=[validate_upload_size],
     )
     location = models.CharField("localidad", max_length=100)
     status = models.CharField(

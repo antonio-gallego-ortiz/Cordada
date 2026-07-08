@@ -94,6 +94,28 @@ class RegistrationRulesTests(TestCase):
             ).exists()
         )
 
+    def test_max_participants_cannot_drop_below_registered(self):
+        """Al editar, el aforo no puede quedar por debajo de los inscritos."""
+        register_user_for_activity(create_user("ana"), self.activity.pk)
+        register_user_for_activity(create_user("luis"), self.activity.pk)
+        self.client.force_login(self.organizer)
+        response = self.client.post(
+            reverse("activity_edit", args=[self.activity.pk]),
+            {
+                "title": self.activity.title,
+                "description": self.activity.description,
+                "date": (timezone.now() + timedelta(days=7)).strftime("%Y-%m-%dT%H:%M"),
+                "difficulty": self.activity.difficulty,
+                "location": self.activity.location,
+                "meeting_point": self.activity.meeting_point,
+                "max_participants": 1,
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "no puede ser menor")
+        self.activity.refresh_from_db()
+        self.assertEqual(self.activity.max_participants, 2)
+
     def test_anonymous_user_cannot_register(self):
         response = self.client.post(
             reverse("registration_create", args=[self.activity.pk])
@@ -375,6 +397,18 @@ class GpxUploadTests(TestCase):
         activity = Activity.objects.get(title=data["title"])
         self.assertRedirects(response, activity.get_absolute_url())
         self.assertTrue(activity.gpx_file, "El GPX no se guardó al crear la actividad")
+        activity.gpx_file.delete(save=False)
+
+    def test_gpx_upload_sets_coordinates_for_weather(self):
+        """El primer punto del track alimenta el parte meteorológico."""
+        user = create_user("organizadora")
+        self.client.force_login(user)
+        data = self.form_data()
+        data["gpx_file"] = SimpleUploadedFile("ruta.gpx", GPX_CONTENT)
+        self.client.post(reverse("activity_create"), data)
+        activity = Activity.objects.get(title=data["title"])
+        self.assertAlmostEqual(activity.latitude, 37.0530, places=4)
+        self.assertAlmostEqual(activity.longitude, -3.3110, places=4)
         activity.gpx_file.delete(save=False)
 
     def test_gpx_is_saved_when_editing_through_the_view(self):

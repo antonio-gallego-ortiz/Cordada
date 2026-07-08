@@ -1,5 +1,24 @@
+from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.urls import reverse
+
+from .validators import validate_upload_size
+
+
+class FakeFile:
+    def __init__(self, size):
+        self.size = size
+
+
+class UploadSizeValidatorTests(TestCase):
+    """Límite de tamaño común a todas las subidas de usuarios."""
+
+    def test_small_file_is_accepted(self):
+        validate_upload_size(FakeFile(5 * 1024 * 1024))
+
+    def test_oversized_file_is_rejected(self):
+        with self.assertRaises(ValidationError):
+            validate_upload_size(FakeFile(5 * 1024 * 1024 + 1))
 
 
 class PlatformTests(TestCase):

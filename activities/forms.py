@@ -4,7 +4,7 @@ from django.utils import timezone
 
 from accounts.forms import BootstrapFormMixin
 
-from .models import Activity
+from .models import Activity, extract_first_trackpoint
 
 
 class ActivityForm(BootstrapFormMixin, forms.ModelForm):
@@ -50,6 +50,29 @@ class ActivityForm(BootstrapFormMixin, forms.ModelForm):
                 "El archivo GPX no puede superar los 5 MB."
             )
         return gpx_file
+
+    def clean_max_participants(self):
+        value = self.cleaned_data["max_participants"]
+        if self.instance.pk:
+            registered = self.instance.registrations.count()
+            if value < registered:
+                raise forms.ValidationError(
+                    f"Ya hay {registered} personas inscritas: el máximo "
+                    "no puede ser menor."
+                )
+        return value
+
+    def save(self, commit=True):
+        activity = super().save(commit=False)
+        # El parte meteorológico necesita coordenadas: se toman del primer
+        # punto del track GPX.
+        if activity.gpx_file:
+            point = extract_first_trackpoint(activity.gpx_file)
+            if point:
+                activity.latitude, activity.longitude = point
+        if commit:
+            activity.save()
+        return activity
 
 
 class ActivitySearchForm(BootstrapFormMixin, forms.Form):

@@ -471,8 +471,13 @@ class Command(BaseCommand):
                     "elevation_gain_m": data["elevation_gain_m"],
                     "duration_hours": data["duration_hours"],
                     "equipment": data["equipment"],
+                    "latitude": data["waypoints"][0][0],
+                    "longitude": data["waypoints"][0][1],
                 },
             )
+            if activity.latitude is None:
+                activity.latitude, activity.longitude = data["waypoints"][0]
+                activity.save(update_fields=["latitude", "longitude"])
             if created:
                 gpx_content = build_gpx(data["title"], data["waypoints"])
                 filename = data["title"].lower().replace(" ", "_").replace(":", "")[:40]

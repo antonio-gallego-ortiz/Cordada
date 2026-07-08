@@ -1,6 +1,12 @@
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.core.validators import FileExtensionValidator, MinValueValidator
+from django.core.validators import (
+    FileExtensionValidator,
+    MaxLengthValidator,
+    MinValueValidator,
+)
+
+from cordada.validators import validate_upload_size
 from django.db import models, transaction
 from django.urls import reverse
 from django.utils import timezone
@@ -16,7 +22,9 @@ class Activity(models.Model):
         VERY_HARD = "very_hard", "Muy difícil"
 
     title = models.CharField("título", max_length=120)
-    description = models.TextField("descripción")
+    description = models.TextField(
+        "descripción", validators=[MaxLengthValidator(5000)]
+    )
     date = models.DateTimeField("fecha y hora")
     difficulty = models.CharField(
         "dificultad", max_length=20, choices=Difficulty.choices
@@ -29,6 +37,7 @@ class Activity(models.Model):
     equipment = models.TextField(
         "material necesario",
         blank=True,
+        validators=[MaxLengthValidator(2000)],
         help_text="Material recomendado para la ruta: calzado, agua, crampones...",
     )
     distance_km = models.DecimalField(
@@ -57,6 +66,10 @@ class Activity(models.Model):
         null=True,
         validators=[FileExtensionValidator(["gpx"])],
     )
+    # Coordenadas del inicio de la ruta: se extraen automáticamente del GPX
+    # y alimentan el parte meteorológico del detalle.
+    latitude = models.FloatField("latitud", null=True, blank=True)
+    longitude = models.FloatField("longitud", null=True, blank=True)
     created_at = models.DateTimeField("fecha de creación", auto_now_add=True)
 
     class Meta:
@@ -130,6 +143,31 @@ class Registration(models.Model):
         return f"{self.user} → {self.activity}"
 
 
+def extract_first_trackpoint(gpx_file):
+    """Devuelve (latitud, longitud) del primer punto del GPX, o ``None``.
+
+    Acepta cualquier variante del esquema GPX buscando el primer elemento
+    ``trkpt``, ``rtept`` o ``wpt`` del documento.
+    """
+    import xml.etree.ElementTree as ElementTree
+
+    try:
+        gpx_file.seek(0)
+        tree = ElementTree.parse(gpx_file)
+        for element in tree.iter():
+            tag = element.tag.rsplit("}", 1)[-1]
+            if tag in ("trkpt", "rtept", "wpt"):
+                return float(element.get("lat")), float(element.get("lon"))
+    except (ElementTree.ParseError, TypeError, ValueError):
+        return None
+    finally:
+        try:
+            gpx_file.seek(0)
+        except (OSError, ValueError):
+            pass
+    return None
+
+
 class ActivityPhoto(models.Model):
     """Fotografía de la ruta: vías de ascensión, pasos clave, paisajes..."""
 
@@ -139,7 +177,9 @@ class ActivityPhoto(models.Model):
         related_name="photos",
         verbose_name="actividad",
     )
-    image = models.ImageField("imagen", upload_to="activity_photos/")
+    image = models.ImageField(
+        "imagen", upload_to="activity_photos/", validators=[validate_upload_size]
+    )
     caption = models.CharField("pie de foto", max_length=150, blank=True)
     created_at = models.DateTimeField("fecha de subida", auto_now_add=True)
 

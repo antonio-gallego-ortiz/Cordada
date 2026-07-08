@@ -1,6 +1,8 @@
 from django.conf import settings
 from django.db import models
 
+from cordada.validators import validate_upload_size
+
 
 class Post(models.Model):
     """Publicación del feed social: experiencias, rutas, fotos..."""
@@ -12,7 +14,13 @@ class Post(models.Model):
         verbose_name="autor",
     )
     content = models.TextField("contenido", max_length=3000)
-    image = models.ImageField("imagen", upload_to="posts/", blank=True, null=True)
+    image = models.ImageField(
+        "imagen",
+        upload_to="posts/",
+        blank=True,
+        null=True,
+        validators=[validate_upload_size],
+    )
     created_at = models.DateTimeField("fecha de publicación", auto_now_add=True)
 
     class Meta:
@@ -25,11 +33,13 @@ class Post(models.Model):
 
     @property
     def like_count(self):
-        return self.likes.count()
+        # len() sobre .all() aprovecha la caché de prefetch_related en el
+        # feed y evita una consulta COUNT por publicación.
+        return len(self.likes.all())
 
     @property
     def comment_count(self):
-        return self.comments.count()
+        return len(self.comments.all())
 
     def is_liked_by(self, user):
         if not user.is_authenticated:

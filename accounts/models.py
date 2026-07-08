@@ -1,6 +1,8 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+from cordada.validators import validate_upload_size
+
 
 class User(AbstractUser):
     """Usuario de la plataforma.
@@ -12,7 +14,11 @@ class User(AbstractUser):
 
     email = models.EmailField("correo electrónico", unique=True)
     photo = models.ImageField(
-        "fotografía", upload_to="profile_photos/", blank=True, null=True
+        "fotografía",
+        upload_to="profile_photos/",
+        blank=True,
+        null=True,
+        validators=[validate_upload_size],
     )
     bio = models.TextField("biografía", max_length=500, blank=True)
 
