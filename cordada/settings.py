@@ -35,11 +35,14 @@ ALLOWED_HOSTS = [
     if host.strip()
 ]
 
-# Render expone el dominio público en esta variable.
-RENDER_EXTERNAL_HOSTNAME = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
-if RENDER_EXTERNAL_HOSTNAME:
-    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
-    CSRF_TRUSTED_ORIGINS = [f"https://{RENDER_EXTERNAL_HOSTNAME}"]
+# Cada plataforma de despliegue expone su dominio público en una variable:
+# RENDER_EXTERNAL_HOSTNAME en Render y WEBSITE_HOSTNAME en Azure App Service.
+CSRF_TRUSTED_ORIGINS = []
+for _hostname_var in ("RENDER_EXTERNAL_HOSTNAME", "WEBSITE_HOSTNAME"):
+    _hostname = os.environ.get(_hostname_var)
+    if _hostname:
+        ALLOWED_HOSTS.append(_hostname)
+        CSRF_TRUSTED_ORIGINS.append(f"https://{_hostname}")
 
 
 # Application definition
@@ -159,9 +162,11 @@ if not DEBUG:
         "whitenoise.storage.CompressedManifestStaticFilesStorage"
     )
 
-# User-uploaded files (profile photos, GPX tracks)
+# User-uploaded files (profile photos, GPX tracks).
+# En Azure App Service se apunta a /home/media, que es almacenamiento
+# persistente entre despliegues.
 MEDIA_URL = "media/"
-MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_ROOT = Path(os.environ.get("MEDIA_ROOT", BASE_DIR / "media"))
 
 # Email: en desarrollo los correos se imprimen en la consola; en
 # producción se configura un SMTP real mediante variables de entorno.

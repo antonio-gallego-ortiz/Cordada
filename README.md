@@ -71,6 +71,13 @@ feed con me gusta y comentarios, seguimientos entre usuarios y
 python manage.py test
 ```
 
+## Despliegue en Azure
+
+La guía completa paso a paso (App Service + PostgreSQL Flexible Server con
+el crédito de estudiante) está en
+[docs/despliegue-azure.md](docs/despliegue-azure.md). El arranque en Azure
+usa [startup.sh](startup.sh).
+
 ## Despliegue en Render
 
 El repositorio incluye un blueprint ([render.yaml](render.yaml)) que crea el
