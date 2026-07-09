@@ -1,6 +1,11 @@
 from django.contrib import admin
 
-from .models import Follow, Post, PostComment, PostLike
+from .models import Follow, Post, PostComment, PostImage, PostLike
+
+
+class PostImageInline(admin.TabularInline):
+    model = PostImage
+    extra = 0
 
 
 @admin.register(Post)
@@ -8,6 +13,7 @@ class PostAdmin(admin.ModelAdmin):
     list_display = ("author", "content", "created_at")
     search_fields = ("content",)
     list_filter = ("created_at",)
+    inlines = [PostImageInline]
 
 
 @admin.register(PostComment)

@@ -8,16 +8,21 @@ from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
 
 from cordada.pagination import paginate
+from feed.views import validate_images
 
 from .forms import ListingForm, ListingSearchForm
-from .models import Conversation, Listing, MarketMessage
+from .models import Conversation, Listing, ListingImage, MarketMessage
+
+MAX_IMAGES_PER_LISTING = 6
 
 
 def listing_list(request):
     """Escaparate del mercado con búsqueda, filtros y paginación."""
     form = ListingSearchForm(request.GET)
-    listings = Listing.objects.filter(status=Listing.Status.AVAILABLE).select_related(
-        "seller"
+    listings = (
+        Listing.objects.filter(status=Listing.Status.AVAILABLE)
+        .select_related("seller")
+        .prefetch_related("images")
     )
     if form.is_valid():
         listings = form.filter_queryset(listings)
@@ -49,13 +54,18 @@ def listing_detail(request, pk):
 
 @login_required
 def listing_create(request):
-    """Publicación de un anuncio."""
+    """Publicación de un anuncio con hasta 6 imágenes."""
     if request.method == "POST":
-        form = ListingForm(request.POST, request.FILES)
-        if form.is_valid():
+        form = ListingForm(request.POST)
+        images = validate_images(
+            request, request.FILES.getlist("images"), MAX_IMAGES_PER_LISTING
+        )
+        if form.is_valid() and images is not None:
             listing = form.save(commit=False)
             listing.seller = request.user
             listing.save()
+            for image in images:
+                ListingImage.objects.create(listing=listing, image=image)
             messages.success(request, "Anuncio publicado correctamente.")
             return redirect(listing)
     else:
@@ -80,9 +90,17 @@ def listing_edit(request, pk):
     """Edición de un anuncio. Solo el vendedor."""
     listing = get_listing_for_seller(request, pk)
     if request.method == "POST":
-        form = ListingForm(request.POST, request.FILES, instance=listing)
-        if form.is_valid():
+        form = ListingForm(request.POST, instance=listing)
+        images = validate_images(
+            request,
+            request.FILES.getlist("images"),
+            MAX_IMAGES_PER_LISTING,
+            current_count=listing.images.count(),
+        )
+        if form.is_valid() and images is not None:
             form.save()
+            for image in images:
+                ListingImage.objects.create(listing=listing, image=image)
             messages.success(request, "Anuncio actualizado.")
             return redirect(listing)
     else:
@@ -92,6 +110,22 @@ def listing_edit(request, pk):
         "market/listing_form.html",
         {"form": form, "title": "Editar anuncio", "listing": listing},
     )
+
+
+@login_required
+@require_POST
+def listing_image_delete(request, pk):
+    """Eliminación de una imagen del anuncio: el vendedor o un administrador."""
+    listing_image = get_object_or_404(
+        ListingImage.objects.select_related("listing"), pk=pk
+    )
+    listing = listing_image.listing
+    if listing.seller != request.user and not request.user.is_admin:
+        raise PermissionDenied
+    listing_image.image.delete(save=False)
+    listing_image.delete()
+    messages.info(request, "Imagen eliminada.")
+    return redirect("listing_edit", pk=listing.pk)
 
 
 @login_required
@@ -128,6 +162,7 @@ def annotate_conversations(queryset):
     """Ordena las conversaciones por su último mensaje."""
     return (
         queryset.select_related("listing", "listing__seller", "buyer")
+        .prefetch_related("listing__images")
         .annotate(last_message_at=Max("messages__created_at"))
         .order_by("-last_message_at", "-created_at")
     )
@@ -152,7 +187,7 @@ def my_conversations(request):
 @login_required
 def my_listings(request):
     """Anuncios publicados por el usuario, con su detalle."""
-    listings = request.user.listings.annotate(
+    listings = request.user.listings.prefetch_related("images").annotate(
         interested_count=Count("conversations", distinct=True)
     )
     return render(request, "market/my_listings.html", {"listings": listings})

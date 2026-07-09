@@ -3,7 +3,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from .forms import ListingForm
-from .models import Conversation, Listing, MarketMessage
+from .models import Conversation, Listing, ListingImage, MarketMessage
 
 User = get_user_model()
 
@@ -169,6 +169,65 @@ class ConversationTests(TestCase):
             reverse("conversation_send", args=[conversation.pk]), {"content": "Hola"}
         )
         self.assertEqual(response.status_code, 403)
+
+
+class ListingImageTests(TestCase):
+    """Imágenes múltiples en los anuncios."""
+
+    TINY_PNG = (
+        b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01"
+        b"\x08\x02\x00\x00\x00\x90wS\xde\x00\x00\x00\x0cIDATx\x9cc\xf8\xcf\xc0"
+        b"\x00\x00\x00\x03\x00\x01\x1e\xdd\x8d\xb0\x00\x00\x00\x00IEND\xaeB`\x82"
+    )
+
+    def tiny_image(self, name):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        return SimpleUploadedFile(name, self.TINY_PNG, content_type="image/png")
+
+    def setUp(self):
+        self.seller = create_user("vendedora")
+        self.other = create_user("otra")
+
+    def tearDown(self):
+        for listing_image in ListingImage.objects.all():
+            listing_image.image.delete(save=False)
+
+    def test_listing_created_with_multiple_images(self):
+        self.client.force_login(self.seller)
+        response = self.client.post(
+            reverse("listing_create"),
+            {
+                "title": "Piolet clásico",
+                "description": "Bien cuidado.",
+                "category": Listing.Category.CLIMBING,
+                "condition": Listing.Condition.GOOD,
+                "offer_type": Listing.OfferType.SALE,
+                "price": "40.00",
+                "location": "Granada",
+                "images": [self.tiny_image("a.png"), self.tiny_image("b.png")],
+            },
+        )
+        listing = Listing.objects.get(title="Piolet clásico")
+        self.assertRedirects(response, listing.get_absolute_url())
+        self.assertEqual(listing.images.count(), 2)
+        self.assertIsNotNone(listing.main_photo)
+
+    def test_only_seller_or_admin_can_delete_image(self):
+        listing = create_listing(self.seller)
+        listing_image = ListingImage(listing=listing)
+        listing_image.image.save("foto.png", self.tiny_image("foto.png"), save=True)
+
+        self.client.force_login(self.other)
+        response = self.client.post(
+            reverse("listing_image_delete", args=[listing_image.pk])
+        )
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(listing.images.count(), 1)
+
+        self.client.force_login(self.seller)
+        self.client.post(reverse("listing_image_delete", args=[listing_image.pk]))
+        self.assertEqual(listing.images.count(), 0)
 
 
 class ListingSearchTests(TestCase):

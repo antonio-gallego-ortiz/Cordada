@@ -14,13 +14,6 @@ class Post(models.Model):
         verbose_name="autor",
     )
     content = models.TextField("contenido", max_length=3000)
-    image = models.ImageField(
-        "imagen",
-        upload_to="posts/",
-        blank=True,
-        null=True,
-        validators=[validate_upload_size],
-    )
     created_at = models.DateTimeField("fecha de publicación", auto_now_add=True)
 
     class Meta:
@@ -45,6 +38,28 @@ class Post(models.Model):
         if not user.is_authenticated:
             return False
         return self.likes.filter(user=user).exists()
+
+
+class PostImage(models.Model):
+    """Imagen de una publicación (una publicación puede llevar varias)."""
+
+    post = models.ForeignKey(
+        Post,
+        on_delete=models.CASCADE,
+        related_name="images",
+        verbose_name="publicación",
+    )
+    image = models.ImageField(
+        "imagen", upload_to="posts/", validators=[validate_upload_size]
+    )
+
+    class Meta:
+        ordering = ["pk"]
+        verbose_name = "imagen de publicación"
+        verbose_name_plural = "imágenes de publicación"
+
+    def __str__(self):
+        return f"Imagen de {self.post}"
 
 
 class PostLike(models.Model):

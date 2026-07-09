@@ -1,10 +1,16 @@
 from django.contrib import admin
 
-from .models import Conversation, Listing, MarketMessage
+from .models import Conversation, Listing, ListingImage, MarketMessage
+
+
+class ListingImageInline(admin.TabularInline):
+    model = ListingImage
+    extra = 0
 
 
 @admin.register(Listing)
 class ListingAdmin(admin.ModelAdmin):
+    inlines = [ListingImageInline]
     list_display = (
         "title",
         "seller",

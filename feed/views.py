@@ -9,7 +9,7 @@ from django.views.decorators.http import require_POST
 from cordada.pagination import paginate
 
 from .forms import PostForm
-from .models import Follow, Post, PostComment, PostLike
+from .models import Follow, Post, PostComment, PostImage, PostLike
 
 User = get_user_model()
 
@@ -17,7 +17,7 @@ User = get_user_model()
 def feed(request):
     """Página de inicio: el feed social de la comunidad."""
     posts = Post.objects.select_related("author").prefetch_related(
-        "comments__author", "likes"
+        "comments__author", "likes", "images"
     )
     following_only = request.GET.get("siguiendo") == "1"
     if following_only and request.user.is_authenticated:
@@ -47,17 +47,46 @@ def feed(request):
     )
 
 
+MAX_IMAGES_PER_POST = 4
+MAX_IMAGE_SIZE = 5 * 1024 * 1024
+
+
+def validate_images(request, images, max_count, current_count=0):
+    """Comprueba número, tamaño y tipo de un lote de imágenes subidas.
+
+    Devuelve la lista de imágenes válidas, avisando con mensajes de las
+    descartadas, o ``None`` si se supera el número máximo permitido.
+    """
+    if len(images) + current_count > max_count:
+        messages.error(request, f"Máximo {max_count} imágenes.")
+        return None
+    valid = []
+    for image in images:
+        if image.size > MAX_IMAGE_SIZE:
+            messages.error(request, f"«{image.name}» supera los 5 MB y se ha omitido.")
+        elif not image.content_type.startswith("image/"):
+            messages.error(request, f"«{image.name}» no es una imagen y se ha omitido.")
+        else:
+            valid.append(image)
+    return valid
+
+
 @login_required
 @require_POST
 def post_create(request):
-    """Publicación de un post en el feed."""
-    form = PostForm(request.POST, request.FILES)
-    if form.is_valid():
+    """Publicación de un post en el feed, con hasta 4 imágenes."""
+    form = PostForm(request.POST)
+    images = validate_images(
+        request, request.FILES.getlist("images"), MAX_IMAGES_PER_POST
+    )
+    if form.is_valid() and images is not None:
         post = form.save(commit=False)
         post.author = request.user
         post.save()
+        for image in images:
+            PostImage.objects.create(post=post, image=image)
         messages.success(request, "¡Publicado!")
-    else:
+    elif images is not None:
         messages.error(request, "La publicación no puede estar vacía.")
     return redirect("feed")
 

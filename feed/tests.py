@@ -90,6 +90,50 @@ class PostTests(TestCase):
         self.assertFalse(PostComment.objects.filter(pk=comment.pk).exists())
 
 
+class PostImageTests(TestCase):
+    """Imágenes múltiples en las publicaciones."""
+
+    TINY_PNG = (
+        b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01"
+        b"\x08\x02\x00\x00\x00\x90wS\xde\x00\x00\x00\x0cIDATx\x9cc\xf8\xcf\xc0"
+        b"\x00\x00\x00\x03\x00\x01\x1e\xdd\x8d\xb0\x00\x00\x00\x00IEND\xaeB`\x82"
+    )
+
+    def tiny_image(self, name):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        return SimpleUploadedFile(name, self.TINY_PNG, content_type="image/png")
+
+    def tearDown(self):
+        from .models import PostImage
+
+        for post_image in PostImage.objects.all():
+            post_image.image.delete(save=False)
+
+    def test_post_can_carry_multiple_images(self):
+        user = create_user("autora")
+        self.client.force_login(user)
+        response = self.client.post(
+            reverse("post_create"),
+            {
+                "content": "Amanecer en la Alcazaba",
+                "images": [self.tiny_image("a.png"), self.tiny_image("b.png")],
+            },
+        )
+        self.assertRedirects(response, reverse("feed"))
+        post = Post.objects.get()
+        self.assertEqual(post.images.count(), 2)
+
+    def test_too_many_images_are_rejected(self):
+        user = create_user("autora")
+        self.client.force_login(user)
+        files = [self.tiny_image(f"{index}.png") for index in range(5)]
+        self.client.post(
+            reverse("post_create"), {"content": "Demasiadas fotos", "images": files}
+        )
+        self.assertEqual(Post.objects.count(), 0)
+
+
 class FeedPaginationTests(TestCase):
     """Paginación del feed."""
 

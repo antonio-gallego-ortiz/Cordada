@@ -8,8 +8,8 @@ from .models import Post
 class PostForm(BootstrapFormMixin, forms.ModelForm):
     class Meta:
         model = Post
-        fields = ["content", "image"]
-        labels = {"content": "", "image": ""}
+        fields = ["content"]
+        labels = {"content": ""}
         widgets = {
             "content": forms.Textarea(
                 attrs={
@@ -17,6 +17,4 @@ class PostForm(BootstrapFormMixin, forms.ModelForm):
                     "placeholder": "¿Qué has hecho este fin de semana? Comparte tu experiencia...",
                 }
             ),
-            # Oculto: se abre desde el botón «Foto» del compositor.
-            "image": forms.FileInput(attrs={"class": "d-none"}),
         }

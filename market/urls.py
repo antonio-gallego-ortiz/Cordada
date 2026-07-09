@@ -9,6 +9,7 @@ urlpatterns = [
     path("anuncio/<int:pk>/editar/", views.listing_edit, name="listing_edit"),
     path("anuncio/<int:pk>/eliminar/", views.listing_delete, name="listing_delete"),
     path("anuncio/<int:pk>/estado/", views.listing_set_status, name="listing_set_status"),
+    path("imagen/<int:pk>/eliminar/", views.listing_image_delete, name="listing_image_delete"),
     path("anuncio/<int:pk>/contactar/", views.conversation_start, name="conversation_start"),
     path("conversaciones/", views.my_conversations, name="my_conversations"),
     path("mis-anuncios/", views.my_listings, name="my_listings"),

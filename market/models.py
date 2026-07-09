@@ -64,13 +64,6 @@ class Listing(models.Model):
         validators=[MinValueValidator(0)],
         help_text="En alquileres, precio por día. En préstamos se deja vacío.",
     )
-    photo = models.ImageField(
-        "fotografía",
-        upload_to="listings/",
-        blank=True,
-        null=True,
-        validators=[validate_upload_size],
-    )
     location = models.CharField("localidad", max_length=100)
     status = models.CharField(
         "estado del anuncio",
@@ -96,6 +89,12 @@ class Listing(models.Model):
         return self.status == self.Status.AVAILABLE
 
     @property
+    def main_photo(self):
+        """Primera imagen del anuncio (portada), o ``None``."""
+        images = list(self.images.all()[:1])
+        return images[0].image if images else None
+
+    @property
     def price_label(self):
         """Precio formateado según el tipo de oferta."""
         if self.offer_type == self.OfferType.LOAN:
@@ -106,6 +105,28 @@ class Listing(models.Model):
         if self.offer_type == self.OfferType.RENT:
             return f"{amount} €/día"
         return f"{amount} €"
+
+
+class ListingImage(models.Model):
+    """Imagen de un anuncio (un anuncio puede llevar varias)."""
+
+    listing = models.ForeignKey(
+        Listing,
+        on_delete=models.CASCADE,
+        related_name="images",
+        verbose_name="anuncio",
+    )
+    image = models.ImageField(
+        "imagen", upload_to="listings/", validators=[validate_upload_size]
+    )
+
+    class Meta:
+        ordering = ["pk"]
+        verbose_name = "imagen del anuncio"
+        verbose_name_plural = "imágenes del anuncio"
+
+    def __str__(self):
+        return f"Imagen de {self.listing}"
 
 
 class Conversation(models.Model):

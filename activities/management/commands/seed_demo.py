@@ -19,8 +19,8 @@ from PIL import Image, ImageColor, ImageDraw, ImageFont
 from accounts.models import UserSport
 from activities.models import Activity, ActivityMessage, ActivityPhoto, register_user_for_activity
 from communities.models import Community, CommunityMessage, Membership
-from feed.models import Follow, Post, PostComment, PostLike
-from market.models import Conversation, Listing, MarketMessage
+from feed.models import Follow, Post, PostComment, PostImage, PostLike
+from market.models import Conversation, Listing, ListingImage, MarketMessage
 
 User = get_user_model()
 
@@ -551,7 +551,7 @@ class Command(BaseCommand):
                     "seller": users[data["seller"]],
                 },
             )
-            if not listing.photo:
+            if not listing.images.exists():
                 filename = f"{listing.title.lower().replace(' ', '_').replace('(', '').replace(')', '')[:40]}.png"
                 image = make_demo_image(
                     [listing.title, listing.get_offer_type_display(), listing.location],
@@ -560,7 +560,8 @@ class Command(BaseCommand):
                     "#0f766e",
                     filename,
                 )
-                listing.photo.save(filename, image, save=True)
+                listing_image = ListingImage(listing=listing)
+                listing_image.image.save(filename, image, save=True)
             listings[data["title"]] = listing
 
         boots = listings["Botas La Sportiva Trango Tower (42)"]
@@ -586,16 +587,28 @@ class Command(BaseCommand):
                 author=users[data["author"]],
                 content=data["content"],
             )
-            if not post.image:
-                filename = f"{post.author.username}_{post.pk or 'post'}.png"
+            # La primera publicación lleva varias imágenes para lucir el
+            # carrusel en la demo; el resto, una. Se completan las que falten.
+            variants = [("#f8fafc", "#059669", "#064e3b")]
+            if data is POSTS[0]:
+                variants += [
+                    ("#eff6ff", "#2563eb", "#1e3a8a"),
+                    ("#fff7ed", "#ea580c", "#7c2d12"),
+                ]
+            existing = post.images.count()
+            for index, (bg, accent, accent2) in enumerate(
+                variants[existing:], start=existing
+            ):
+                filename = f"{post.author.username}_{post.pk or 'post'}_{index}.png"
                 image = make_demo_image(
                     ["Cordada", "Feed social", data["content"][:80]],
-                    "#f8fafc",
-                    "#059669",
-                    "#064e3b",
+                    bg,
+                    accent,
+                    accent2,
                     filename,
                 )
-                post.image.save(filename, image, save=True)
+                post_image = PostImage(post=post)
+                post_image.image.save(filename, image, save=True)
             for username in data["likes"]:
                 PostLike.objects.get_or_create(post=post, user=users[username])
             for username, content in data["comments"]:

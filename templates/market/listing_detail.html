@@ -6,13 +6,44 @@
 <div class="row g-4">
     <div class="col-lg-7">
         <div class="card shadow-sm overflow-hidden">
-            {% if listing.photo %}
-                <img src="{{ listing.photo.url }}" alt="{{ listing.title }}" class="listing-photo-lg rounded-0">
-            {% else %}
-                <div class="listing-photo-placeholder rounded-0" style="height: 320px;">
-                    <i class="ti ti-photo"></i>
-                </div>
-            {% endif %}
+            {% with images=listing.images.all %}
+                {% if images|length > 1 %}
+                    <div id="listing-carousel" class="carousel slide cordada-carousel">
+                        <div class="carousel-indicators">
+                            {% for listing_image in images %}
+                                <button type="button" data-bs-target="#listing-carousel"
+                                        data-bs-slide-to="{{ forloop.counter0 }}"
+                                        {% if forloop.first %}class="active" aria-current="true"{% endif %}
+                                        aria-label="Imagen {{ forloop.counter }}"></button>
+                            {% endfor %}
+                        </div>
+                        <div class="carousel-inner">
+                            {% for listing_image in images %}
+                                <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                                    <img src="{{ listing_image.image.url }}" alt="{{ listing.title }}"
+                                         class="listing-photo-lg rounded-0 d-block w-100">
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <button class="carousel-control-prev" type="button"
+                                data-bs-target="#listing-carousel" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Anterior</span>
+                        </button>
+                        <button class="carousel-control-next" type="button"
+                                data-bs-target="#listing-carousel" data-bs-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Siguiente</span>
+                        </button>
+                    </div>
+                {% elif images %}
+                    <img src="{{ images.0.image.url }}" alt="{{ listing.title }}" class="listing-photo-lg rounded-0">
+                {% else %}
+                    <div class="listing-photo-placeholder rounded-0" style="height: 320px;">
+                        <i class="ti ti-photo"></i>
+                    </div>
+                {% endif %}
+            {% endwith %}
             <div class="card-body p-4">
                 <h2 class="h5 mb-3">Descripción</h2>
                 <p class="mb-0">{{ listing.description|linebreaksbr }}</p>

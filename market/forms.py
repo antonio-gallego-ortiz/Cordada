@@ -17,7 +17,6 @@ class ListingForm(BootstrapFormMixin, forms.ModelForm):
             "offer_type",
             "price",
             "location",
-            "photo",
         ]
         widgets = {
             "description": forms.Textarea(attrs={"rows": 5}),

@@ -24,8 +24,8 @@
                                 {{ form.content }}
                                 <div class="d-flex justify-content-between align-items-center mt-2">
                                     <label class="btn btn-sm btn-outline-secondary mb-0">
-                                        <i class="ti ti-photo me-1"></i>Foto
-                                        {{ form.image }}
+                                        <i class="ti ti-photo me-1"></i>Fotos
+                                        <input type="file" name="images" accept="image/*" multiple class="d-none">
                                     </label>
                                     <button type="submit" class="btn btn-success px-4">Publicar</button>
                                 </div>
@@ -88,9 +88,40 @@
                     </div>
 
                     <p class="mb-3">{{ post.content|linebreaksbr }}</p>
-                    {% if post.image %}
-                        <img src="{{ post.image.url }}" alt="Imagen de la publicación" class="post-image mb-3">
-                    {% endif %}
+                    {% with images=post.images.all %}
+                        {% if images|length > 1 %}
+                            <div id="post-carousel-{{ post.pk }}" class="carousel slide cordada-carousel mb-3">
+                                <div class="carousel-indicators">
+                                    {% for post_image in images %}
+                                        <button type="button" data-bs-target="#post-carousel-{{ post.pk }}"
+                                                data-bs-slide-to="{{ forloop.counter0 }}"
+                                                {% if forloop.first %}class="active" aria-current="true"{% endif %}
+                                                aria-label="Imagen {{ forloop.counter }}"></button>
+                                    {% endfor %}
+                                </div>
+                                <div class="carousel-inner rounded-3">
+                                    {% for post_image in images %}
+                                        <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                                            <img src="{{ post_image.image.url }}" alt="Imagen de la publicación"
+                                                 class="post-image d-block w-100">
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                                <button class="carousel-control-prev" type="button"
+                                        data-bs-target="#post-carousel-{{ post.pk }}" data-bs-slide="prev">
+                                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                    <span class="visually-hidden">Anterior</span>
+                                </button>
+                                <button class="carousel-control-next" type="button"
+                                        data-bs-target="#post-carousel-{{ post.pk }}" data-bs-slide="next">
+                                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                    <span class="visually-hidden">Siguiente</span>
+                                </button>
+                            </div>
+                        {% elif images %}
+                            <img src="{{ images.0.image.url }}" alt="Imagen de la publicación" class="post-image mb-3">
+                        {% endif %}
+                    {% endwith %}
 
                     <div class="d-flex gap-2 border-top pt-2">
                         {% if user.is_authenticated %}
