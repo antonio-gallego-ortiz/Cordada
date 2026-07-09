@@ -429,6 +429,40 @@ h1, h2, h3, h4, h5, h6, .navbar-brand, .listing-price {
     border-top: 1px solid var(--cordada-border);
 }
 
+/* ---------- Previsualización de subidas y carrusel ---------- */
+.upload-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.6rem;
+}
+
+.upload-preview img {
+    width: 64px;
+    height: 64px;
+    object-fit: cover;
+    border-radius: 0.6rem;
+    border: 2px solid var(--cordada-primary-soft);
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.12);
+}
+
+.cordada-carousel .carousel-inner { background-color: #0f172a; }
+
+.cordada-carousel .post-image,
+.cordada-carousel .listing-photo-lg {
+    height: 420px;
+    object-fit: contain;
+    border: none;
+}
+
+.cordada-carousel .carousel-control-prev-icon,
+.cordada-carousel .carousel-control-next-icon {
+    background-color: rgba(15, 23, 42, 0.45);
+    border-radius: 50%;
+    background-size: 55%;
+    padding: 1.1rem;
+}
+
 /* ---------- Parte meteorológico ---------- */
 .weather-card {
     background: linear-gradient(180deg, #eff6ff, #f8fafc);
